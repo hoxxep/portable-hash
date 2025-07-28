@@ -1,16 +1,23 @@
 # Portable Hashing Traits for Rust
 
-Disclaimer: not ready for production, yet!
+Note: not ready for production, yet!
 
-Introducing `PortableHash` and `PortableHasher`: a set of traits for portable and stable hashing across different platforms and compiler versions. Stable, portable hashing made easy!
+Introducing `PortableHash` and `PortableHasher`: a set of traits for portable and stable hashing across different platforms and compiler versions. Stable, portable hashing made easy! This crate does not offer a hasher implementation, but provides the traits and macros to link data types implementing `PortableHash` with hashers implementing `PortableHasher`.
 
 ## Using PortableHash
 
 To use `PortableHash`, simply derive or implement it on your types, and choose a `PortableHasher` implementation that suits your needs.
 
-By implementing `PortableHash` on library types, you must guarantee that:
+By implementing `PortableHash` on library types, **you promise to guarantee** that:
 - The type is portable across different platforms and versions of Rust, such as not including OS-dependent string encodings.
-- The type hashing logic is stable across all minor versions of your crate. Fields may be reordered, added, or changed, but the `PortableHash::portable_hash` must always hash the same fields in the same order for all crate minor versions.
+- The type hashing logic is stable across all minor versions of your crate. Fields may be reordered, added, or changed, but the `PortableHash::portable_hash` must always hash the same fields in the same order for all crate minor versions. Any breaking changes to the hash output of any type should require a major version bump of your crate, and documentation of the breaking change in your changelog.
+
+<details>
+<summary><strong>Examples of hashable, but not portable types.</strong></summary>
+
+`OsString`, `OsStr`, and `Path` are examples of types that vary between platforms. The string encodings of these types can differ based on the operating system, making them unsuitable for portable hashing. They can safely derive `std::hash::Hash` for in-memory hashmaps, but `PortableHash` is explicitly _not_ implemented on these types.
+
+</details>
 
 ```rust
 use portable_hash::{PortableHash, PortableHasher, PortableHasherDigest};
@@ -33,15 +40,9 @@ assert_eq!(hasher.digest(), [
 ], "hasher-specific output type");
 ```
 
-<details>
-<summary><strong>Examples of hashable, but not portable types.</strong></summary>
-
-`OsString`, `OsStr`, and `Path` are examples of types that vary between platforms. The string encodings of these types can differ based on the operating system, making them unsuitable for portable hashing. They can safely derive `std::hash::Hash` for in-memory hashmaps, but `PortableHash` is explicitly _not_ implemented on these types.
-
-</details>
-
 Hashers that implement `PortableHasher`:
-- [rapidhash](https://crates.io/crates/rapidhash): A fast, non-cryptographic, minimally DoS resistant hasher.
+- [sha-hasher](https://crates.io/crates/sha-hasher): A SHA-256 hasher that implements `PortableHasher` for stable and portable hashing.
+- Coming soon: [rapidhash](https://crates.io/crates/rapidhash): A fast, non-cryptographic, minimally DoS resistant hasher.
 - TBC: sha, blake, siphash, seahash etc. hashers.
 
 ## Implementing PortableHasher for Hash Library Authors
@@ -83,11 +84,14 @@ This is so fraught with accidental footguns, `PortableHash` and `PortableHasher`
 ## Is portable-hash ready for production?
 Do not use this crate in production yet as it's still under development. Please wait for the 1.0 release to stabilise the API and hash output. The `PortableHash` and `PortableHasher` traits deviate from the standard library in various ways that still need to be reviewed and documented, and are subject to change. Subscribe to notifications on the [stabilisation issue](https://github.com/hoxxep/portable-hash/issues/1) to be notified of the 1.0 release. Issues and contributions are very welcome.
 
-## TODO
+## TODO before Stabilisation
+- [x] Basic `PortableHash` and `PortableHasher` traits.
+- [x] Implement `PortableHash` on many primitive and standard library types.
 - [ ] Documentation for the APIs.
 - [ ] Documentation for how to implement portable hashing correctly.
+- [x] Create a `derive(PortableHash)` macro.
 - [ ] Verify the `derive(PortableHash)` macro produces stable enum hashing.
-- [ ] Compare to [anyhash](https://crates.io/crates/anyhash), is there a need for a new crate? Do we want to follow the same `HasherWrite` pattern?
+- [ ] Compare to [anyhash](https://crates.io/crates/anyhash). It does not promise stability or hash types in a DoS-resistant way. But do we want to follow the same `HasherWrite` pattern?
 - [ ] Match the ordering of the `Hasher` trait methods.
 - [ ] Decide on, and/or fully implement, `write_bytes`
 - [ ] Decide on removing `write_usize` and `write_isize` methods.
@@ -95,7 +99,7 @@ Do not use this crate in production yet as it's still under development. Please 
   - [ ] Should the default `finish` instead offer a custom Output type?
   - [ ] Use a better name for custom outputs than "digest".
   - [ ] Should cryptographic hashes implement `PortableHasher`? Is the `sha-hasher` a reasonable thing to publish?
-- [ ] Decide on `!` implementation.
+- [ ] Decide on `!` implementation, or remove the nightly feature.
 - [ ] Decide on ptr implementations, or remove hashing pointers.
 - [ ] Decide on `write_len_prefix` name change.
 - [ ] Decide on `write_str` default implementation change to a length prefix.
@@ -106,3 +110,19 @@ Do not use this crate in production yet as it's still under development. Please 
 - [ ] Tests and example implementations, including rapidhash, Sha256, BLAKE3, and SipHasher.
 - [ ] Final comment period.
 - [ ] Stabilise with 1.0.
+
+## Versioning
+
+1.0 will mark the first stable release of portable-hash. Before then, consider this trait unstable.
+
+Major version bumps will occur for:
+- Breaking API changes.
+- Hash output changes in any way:
+  - Changes to the `PortableHash` implementation of a basic type.
+  - Changes to the default behaviour of a `PortableHasher` method.
+
+Minor version bumps will occur for:
+- API additions.
+- New `PortableHash` implementations.
+
+Users must be able to fix to a specific major version of `portable-hash`. Any library with a `portable-hash` dependency should make a major version bump of their crate if they change the major version of `portable-hash`, unless their trait offers support for multiple versions of `PortableHash`.
