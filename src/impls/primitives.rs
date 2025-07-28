@@ -1,3 +1,5 @@
+//! [`PortableHash`] implementations for primitive types and core types.
+//!
 //! Modified from the `std::hash` module in the rust standard library.
 
 use crate::{PortableHash, PortableHasher};
@@ -7,12 +9,12 @@ macro_rules! impl_write {
 
         impl PortableHash for $ty {
             #[inline]
-            fn hash<H: PortableHasher>(&self, state: &mut H) {
+            fn portable_hash<H: PortableHasher>(&self, state: &mut H) {
                 state.$meth(*self)
             }
 
             #[inline]
-            fn hash_slice<H: PortableHasher>(data: &[$ty], state: &mut H) {
+            fn portable_hash_slice<H: PortableHasher>(data: &[$ty], state: &mut H) {
                 let newlen = size_of_val(data);
                 let ptr = data.as_ptr() as *const u8;
                 // SAFETY: `ptr` is valid and aligned, as this macro is only used
@@ -42,21 +44,21 @@ impl_write! {
 
 impl PortableHash for bool {
     #[inline]
-    fn hash<H: PortableHasher>(&self, state: &mut H) {
+    fn portable_hash<H: PortableHasher>(&self, state: &mut H) {
         state.write_u8(*self as u8)
     }
 }
 
 impl PortableHash for char {
     #[inline]
-    fn hash<H: PortableHasher>(&self, state: &mut H) {
+    fn portable_hash<H: PortableHasher>(&self, state: &mut H) {
         state.write_u32(*self as u32)
     }
 }
 
 impl PortableHash for str {
     #[inline]
-    fn hash<H: PortableHasher>(&self, state: &mut H) {
+    fn portable_hash<H: PortableHasher>(&self, state: &mut H) {
         state.write_str(self);
     }
 }
@@ -64,7 +66,7 @@ impl PortableHash for str {
 #[cfg(feature = "nightly")]
 impl PortableHash for ! {
     #[inline]
-    fn hash<H: PortableHasher>(&self, _: &mut H) {
+    fn portable_hash<H: PortableHasher>(&self, _: &mut H) {
         *self
     }
 }
@@ -74,7 +76,7 @@ macro_rules! impl_hash_tuple {
 
         impl PortableHash for () {
             #[inline]
-            fn hash<H: PortableHasher>(&self, _state: &mut H) {}
+            fn portable_hash<H: PortableHasher>(&self, _state: &mut H) {}
         }
     );
 
@@ -85,9 +87,9 @@ macro_rules! impl_hash_tuple {
             impl<$($name: PortableHash),+> PortableHash for ($($name,)+) where last_type!($($name,)+): ?Sized {
                 #[allow(non_snake_case)]
                 #[inline]
-                fn hash<S: PortableHasher>(&self, state: &mut S) {
+                fn portable_hash<S: PortableHasher>(&self, state: &mut S) {
                     let ($(ref $name,)+) = *self;
-                    $($name.hash(state);)+
+                    $($name.portable_hash(state);)+
                 }
             }
         }
@@ -126,23 +128,23 @@ impl_hash_tuple! { T B C D E F G H I J K L }
 
 impl<T: PortableHash> PortableHash for [T] {
     #[inline]
-    fn hash<H: PortableHasher>(&self, state: &mut H) {
+    fn portable_hash<H: PortableHasher>(&self, state: &mut H) {
         state.write_len_prefix(self.len());
-        PortableHash::hash_slice(self, state)
+        PortableHash::portable_hash_slice(self, state)
     }
 }
 
 impl<T: ?Sized + PortableHash> PortableHash for &T {
     #[inline]
-    fn hash<H: PortableHasher>(&self, state: &mut H) {
-        (**self).hash(state);
+    fn portable_hash<H: PortableHasher>(&self, state: &mut H) {
+        (**self).portable_hash(state);
     }
 }
 
 impl<T: ?Sized + PortableHash> PortableHash for &mut T {
     #[inline]
-    fn hash<H: PortableHasher>(&self, state: &mut H) {
-        (**self).hash(state);
+    fn portable_hash<H: PortableHasher>(&self, state: &mut H) {
+        (**self).portable_hash(state);
     }
 }
 
@@ -152,7 +154,7 @@ impl<T: ?Sized> PortableHash for *const T {
     /// Accessing the metadata of a raw pointer was not stable when PortableHash was built, and the
     /// Metadata type may also change in the future.
     #[inline]
-    fn hash<H: PortableHasher>(&self, state: &mut H) {
+    fn portable_hash<H: PortableHasher>(&self, state: &mut H) {
         // let (address, metadata) = self.to_raw_parts();
         state.write_usize(self.addr());
         // metadata.hash(state);
@@ -165,7 +167,7 @@ impl<T: ?Sized> PortableHash for *mut T {
     /// Accessing the metadata of a raw pointer was not stable when PortableHash was built, and the
     /// Metadata type may also change in the future.
     #[inline]
-    fn hash<H: PortableHasher>(&self, state: &mut H) {
+    fn portable_hash<H: PortableHasher>(&self, state: &mut H) {
         // let (address, metadata) = self.to_raw_parts();
         state.write_usize(self.addr());
         // metadata.hash(state);

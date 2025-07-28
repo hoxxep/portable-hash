@@ -2,17 +2,17 @@ mod impls;
 
 pub trait PortableHash {
     /// Computes the hash of the object using the specified hasher.
-    fn hash<H: PortableHasher>(&self, state: &mut H);
+    fn portable_hash<H: PortableHasher>(&self, state: &mut H);
 
     /// Feed a slice of this type into the given [`PortableHasher`].
-    fn hash_slice<H: PortableHasher>(data: &[Self], state: &mut H)
+    fn portable_hash_slice<H: PortableHasher>(data: &[Self], state: &mut H)
     where
         Self: Sized,
     {
         // TODO: adding a length prefix here differs from the standard library.
         state.write_len_prefix(data.len());
         for item in data.iter() {
-            item.hash(state);
+            item.portable_hash(state);
         }
     }
 }
@@ -123,7 +123,7 @@ pub trait BuildPortableHasher {
         T: PortableHash,
     {
         let mut hasher = self.build_hasher();
-        x.hash(&mut hasher);
+        x.portable_hash(&mut hasher);
         hasher.finish()
     }
 
@@ -133,7 +133,7 @@ pub trait BuildPortableHasher {
         Self::PortableHasher: PortableHasherDigest,
     {
         let mut hasher = self.build_hasher();
-        x.hash(&mut hasher);
+        x.portable_hash(&mut hasher);
         hasher.digest()
     }
 }
@@ -162,11 +162,11 @@ mod tests {
     }
 
     impl PortableHash for TestObject {
-        fn hash<H: super::PortableHasher>(&self, state: &mut H) {
-            self.a.hash(state);
-            self.b.hash(state);
-            self.c.hash(state);
-            self.d.hash(state);
+        fn portable_hash<H: super::PortableHasher>(&self, state: &mut H) {
+            self.a.portable_hash(state);
+            self.b.portable_hash(state);
+            self.c.portable_hash(state);
+            self.d.portable_hash(state);
         }
     }
 

@@ -12,6 +12,8 @@ authors = ["Liam Gray <gmail@liamg.me>"]
 exclude = ["Cargo.lock", ".github", ".editorconfig"]
 
 [features]
-nightly = []
+default = ["std"]
+nightly = []  # enable PortableHash implementation on !
+std = []  # enable PortableHash implementations of std library types
 
 [dependencies]
