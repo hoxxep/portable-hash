@@ -157,3 +157,11 @@ impl<H: PortableHasher + Default> BuildPortableHasher for DefaultBuildPortableHa
         H::default()
     }
 }
+
+impl<H: PortableHasher + Default> Default for DefaultBuildPortableHasher<H> {
+    fn default() -> Self {
+        Self {
+            hasher: core::marker::PhantomData,
+        }
+    }
+}

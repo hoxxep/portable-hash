@@ -1,7 +1,7 @@
 #![doc = include_str!("../README.md")]
 
 use proc_macro::TokenStream as TokenStream1;
-use proc_macro2::{Ident, TokenStream};
+use proc_macro2::{Ident, Literal, Span, TokenStream};
 use quote::{format_ident, quote, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
@@ -60,8 +60,26 @@ pub fn derive_portable_hash(input: TokenStream1) -> TokenStream1 {
         Data::Enum(x) => {
             let mut variant_tokens = TokenStream::new();
 
-            for x in x.variants.iter() {
+            for (discriminant, x) in x.variants.iter().enumerate() {
                 let var = &x.ident;
+
+                // TODO(stabilisation): we do this for forward-compatibility, but does it cause other issues?
+                // Use write_u8 until discriminant > u8::MAX, then write_u16, u32, u64.
+                let span = Span::call_site(); // TODO: improve Span location?
+                let (discriminant_method, discriminant_value) = match discriminant {
+                    discriminant if discriminant > u32::MAX as usize => {
+                        (Ident::new("write_u64", span), Literal::u64_suffixed(discriminant as u64))
+                    }
+                    discriminant if discriminant > u16::MAX as usize => {
+                        (Ident::new("write_u32", span), Literal::u32_suffixed(discriminant as u32))
+                    }
+                    discriminant if discriminant > u8::MAX as usize => {
+                        (Ident::new("write_u16", span), Literal::u16_suffixed(discriminant as u16))
+                    }
+                    _ => {
+                        (Ident::new("write_u8", span), Literal::u8_suffixed(discriminant as u8))
+                    }
+                };
 
                 match &x.fields {
                     Fields::Named(x) => {
@@ -73,8 +91,14 @@ pub fn derive_portable_hash(input: TokenStream1) -> TokenStream1 {
                                 x.ident.as_ref().unwrap()
                             })
                             .collect();
+                        // TODO(stabilisation): should we use the enum Name and write_str?
+                        //   It would allow re-ordering of named variants without changing
+                        //   the hash.
                         quote! {
-                            Self::#var { #(#fields),* } => { #( #hash::portable_hash(#fields, state); )* }
+                            Self::#var { #(#fields),* } => {
+                                state.#discriminant_method(#discriminant_value);
+                                #( #hash::portable_hash(#fields, state); )*
+                            }
                         }
                             .to_tokens(&mut variant_tokens);
                     }
@@ -90,24 +114,29 @@ pub fn derive_portable_hash(input: TokenStream1) -> TokenStream1 {
                             })
                             .collect();
                         quote! {
-                            Self::#var(#(#fields),*) => { #( #hash::portable_hash(#fields, state); )* }
+                            Self::#var(#(#fields),*) => {
+                                state.#discriminant_method(#discriminant_value);
+                                #( #hash::portable_hash(#fields, state); )*
+                            }
                         }
                             .to_tokens(&mut variant_tokens);
                     }
 
                     Fields::Unit => quote! {
-                        Self::#var => (),
+                        Self::#var => {
+                            state.#discriminant_method(#discriminant_value);
+                        },
                     }
                         .to_tokens(&mut variant_tokens),
                 }
             }
 
+            // TODO(stability): use a portable discriminant for hashing
+            //   named -> use hash(str(variant_name)) + hash(data)
+            //   unnamed -> use hash(index) + hash(data)
+            //   unit -> use hash(index)
+            // Old: #hash::hash(&core::mem::discriminant(self), state);
             quote! {
-                // TODO(stability): use a portable discriminant for hashing
-                //   named -> use hash(str(variant_name)) + hash(data)
-                //   unnamed -> use hash(index) + hash(data)
-                //   unit -> use hash(index)
-                #hash::hash(&core::mem::discriminant(self), state);
                 match self {
                     #variant_tokens
                 }

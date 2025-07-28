@@ -10,7 +10,9 @@ To use `PortableHash`, simply derive or implement it on your types, and choose a
 
 By implementing `PortableHash` on library types, **you promise to guarantee** that:
 - The type is portable across different platforms and versions of Rust, such as not including OS-dependent string encodings.
-- The type hashing logic is stable across all minor versions of your crate. Fields may be reordered, added, or changed, but the `PortableHash::portable_hash` must always hash the same fields in the same order for all crate minor versions. Any breaking changes to the hash output of any type should require a major version bump of your crate, and documentation of the breaking change in your changelog.
+- The type hashing logic is stable across all minor versions of your crate. Fields may be reordered, added, or changed, but the `PortableHash::portable_hash` must always hash the same fields in the same order for all crate minor versions.
+  - Any breaking changes to the hash output of any type should require a major version bump of your crate, and documentation of the breaking change in your changelog.
+  - Be careful with `derive(PortableHash)`. Changing the order of fields in structs or enums will change the hash output. We recommend writing unit tests that hash each of your types against hardcoded hash outputs to check for stability. Fields can be _renamed_ safely, but cannot be re-ordered. Please implement `PortableHash` manually to maintain stability if you need to change the order of fields.
 
 <details>
 <summary><strong>Examples of hashable, but not portable types.</strong></summary>
@@ -90,7 +92,7 @@ Do not use this crate in production yet as it's still under development. Please 
 - [ ] Documentation for the APIs.
 - [ ] Documentation for how to implement portable hashing correctly.
 - [x] Create a `derive(PortableHash)` macro.
-- [ ] Fix the `derive(PortableHash)` macro to produce stable enum hashing. It's currently unstable!
+- [ ] Review the `derive(PortableHash)` macro to produce stable enum hashing. Re-ordering will change the hash output.
 - [ ] Compare to [anyhash](https://crates.io/crates/anyhash). It does not promise stability or hash types in a DoS-resistant way. But do we want to follow the same `HasherWrite` pattern?
 - [x] Match the ordering of the `Hasher` trait methods.
 - [ ] Decide on, and/or fully implement, `write_bytes`.
