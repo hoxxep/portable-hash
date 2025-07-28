@@ -19,3 +19,7 @@ std = ["alloc"]  # enable PortableHash implementations of std library types
 
 [dependencies]
 portable-hash-macros = { workspace = true }
+
+[dev-dependencies]
+# for doctests
+sha-hasher = { workspace = true, default-features = false }
