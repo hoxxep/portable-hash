@@ -18,8 +18,4 @@ nightly = []  # enable PortableHash implementation on !
 std = ["alloc"]  # enable PortableHash implementations of std library types
 
 [dependencies]
-portable-hash-macros = { workspace = true }
-
-[dev-dependencies]
-# for doctests
-sha-hasher = { workspace = true, default-features = false }
+portable-hash-macros = { version = "0.1.0" }
