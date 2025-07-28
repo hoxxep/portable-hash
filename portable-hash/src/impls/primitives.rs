@@ -22,8 +22,9 @@ macro_rules! impl_write {
 
         /// We differ from the standard library implementation here, as we do _not_ allow
         /// [`portable_hash_slice`] to transmute unpadded numbers into a byte slice. This is
-        /// because we need to control the endianness of the numbers when hashing, as a simple
-        /// byte slice would not be portable across platforms.
+        /// because we need to control the endianness of the numbers when hashing, and a simple
+        /// byte slice would not be portable across platforms. Likewise, `usize` and `isize` are
+        /// not portable across platforms as a byte slice.
         impl PortableHash for $ty {
             #[inline]
             fn portable_hash<H: PortableHasher>(&self, state: &mut H) {
@@ -37,14 +38,14 @@ impl_write! {
     (u16, write_u16),
     (u32, write_u32),
     (u64, write_u64),
+    (u128, write_u128),
     (usize, write_usize),
     (i8, write_i8),
     (i16, write_i16),
     (i32, write_i32),
     (i64, write_i64),
-    (isize, write_isize),
-    (u128, write_u128),
     (i128, write_i128),
+    (isize, write_isize),
 }
 
 impl PortableHash for bool {

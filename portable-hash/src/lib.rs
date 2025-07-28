@@ -1,11 +1,58 @@
 #![cfg_attr(not(doctest), doc = include_str!("../README.md"))]
 #![cfg_attr(not(feature = "std"), no_std)]
 
+#![warn(missing_docs)]
+#![deny(unused_must_use)]
+
 mod impls;
 
 /// A derive macro for [`PortableHash`].
 pub use portable_hash_macros::PortableHash;
 
+/// A trait for types that can be hashed in a portable way, inspired by [`std::hash::Hash`].
+///
+/// This trait is similar to the standard library's `std::hash::Hash`, but it is designed to be
+/// portable across different platforms and compiler versions. `PortableHash` types can be hashed
+/// by any hasher that implements the [`PortableHasher`] trait.
+///
+/// Any types that implement this trait must guarantee that the hashing logic is stable across:
+/// - All platforms.
+/// - All rust compiler versions.
+/// - All minor versions of your crate.
+///
+/// # Example Derive Usage
+/// ```
+/// use portable_hash::PortableHash;
+///
+/// #[derive(PortableHash)]
+/// struct MyStruct {
+///     a: u32,
+///     b: String,
+///     c: Vec<u64>,
+/// }
+/// ```
+///
+/// # Example Manual Implementation
+/// ```
+/// use portable_hash::{PortableHash, PortableHasher};
+///
+/// struct MyStruct {
+///     a: u32,
+///     b: String,
+///     c: Vec<u64>,
+/// }
+///
+/// impl PortableHash for MyStruct {
+///     fn portable_hash<H: PortableHasher>(&self, state: &mut H) {
+///         state.write_u32(self.a);
+///         state.write_str(&self.b);
+///         state.write_len_prefix(self.c.len());
+///         for item in &self.c {
+///             item.portable_hash(state);
+///         }
+///     }
+/// }
+/// ```
 pub trait PortableHash {
     /// Computes the hash of the object using the specified hasher.
     fn portable_hash<H: PortableHasher>(&self, state: &mut H);
@@ -26,78 +73,150 @@ pub trait PortableHash {
     }
 }
 
+/// A trait for hashers that can hash any [`PortableHash`] type, inspired by [`std::hash::Hasher`].
+///
+/// Your crate must provide the following guarantees when implementing PortableHasher:
+/// - The hash output must be stable across all platforms, compiler versions, and minor versions
+///   of your crate.
+/// - Integer types are hashed consistently across all platforms, explicitly choosing little-endian
+///   or big-endian encoding, and hashing `usize` and `isize` in a platform-independent way.
+/// - Use `default-features = false` when adding portable-hash as a dependency, so that end users
+///   can opt to disable the `std` feature.
+///
+/// End users likely want to use a [`BuildPortableHasher`] implementation to create a hasher,
+/// instead of directly using `PortableHasher`. This enables caching the hasher's seed once and
+/// instantiating multiple hashers of the same seed.
 pub trait PortableHasher {
-    /// Finalizes the hash computation and returns the hash value.
+    /// Finalize the hash computation and return the hash value.
     fn finish(&self) -> u64;
 
-    /// Writes a byte slice to the hasher.
+    /// Write a byte slice to the hasher.
     fn write(&mut self, bytes: &[u8]);
 
+    /// Write a single byte to the hasher.
+    ///
+    /// The `PortableHasher` implementation is responsible for ensuring the number is hashed in an
+    /// endian-agnostic way.
     #[inline]
     fn write_u8(&mut self, i: u8) {
         self.write(&[i]);
     }
 
+    /// Write a 16-bit unsigned integer to the hasher.
+    ///
+    /// The `PortableHasher` implementation is responsible for ensuring the number is hashed in an
+    /// endian-agnostic way.
     #[inline]
     fn write_u16(&mut self, i: u16) {
         self.write(&i.to_le_bytes());
     }
 
+    /// Write a 32-bit unsigned integer to the hasher.
+    ///
+    /// The `PortableHasher` implementation is responsible for ensuring the number is hashed in an
+    /// endian-agnostic way.
     #[inline]
     fn write_u32(&mut self, i: u32) {
         self.write(&i.to_le_bytes());
     }
 
+    /// Write a 64-bit unsigned integer to the hasher.
+    ///
+    /// The `PortableHasher` implementation is responsible for ensuring the number is hashed in an
+    /// endian-agnostic way.
     #[inline]
     fn write_u64(&mut self, i: u64) {
         self.write(&i.to_le_bytes());
     }
 
+    /// Write a 128-bit unsigned integer to the hasher.
+    ///
+    /// The `PortableHasher` implementation is responsible for ensuring the number is hashed in an
+    /// endian-agnostic way.
     #[inline]
     fn write_u128(&mut self, i: u128) {
         self.write(&i.to_le_bytes());
     }
 
+    /// Write a 64-bit unsigned size to the hasher.
+    ///
+    /// The `PortableHasher` implementation is responsible for ensuring the number is hashed in an
+    /// endian-agnostic way.
     #[inline]
     fn write_usize(&mut self, i: usize) {
+        // Portability: always write usize as a full-sized u64 to remain platform independent.
         self.write_u64(i as u64);
     }
 
+    /// Write a single byte to the hasher.
+    ///
+    /// The `PortableHasher` implementation is responsible for ensuring the number is hashed in an
+    /// endian-agnostic way.
     #[inline]
     fn write_i8(&mut self, i: i8) {
         self.write(&i.to_le_bytes());
     }
 
+    /// Write a 16-bit signed integer to the hasher.
+    ///
+    /// The `PortableHasher` implementation is responsible for ensuring the number is hashed in an
+    /// endian-agnostic way.
     #[inline]
     fn write_i16(&mut self, i: i16) {
         self.write(&i.to_le_bytes());
     }
 
+    /// Write a 32-bit signed integer to the hasher.
+    ///
+    /// The `PortableHasher` implementation is responsible for ensuring the number is hashed in an
+    /// endian-agnostic way.
     #[inline]
     fn write_i32(&mut self, i: i32) {
         self.write(&i.to_le_bytes());
     }
 
+    /// Write a 64-bit signed integer to the hasher.
+    ///
+    /// The `PortableHasher` implementation is responsible for ensuring the number is hashed in an
+    /// endian-agnostic way.
     #[inline]
     fn write_i64(&mut self, i: i64) {
         self.write(&i.to_le_bytes());
     }
 
+    /// Write a 128-bit signed integer to the hasher.
+    ///
+    /// The `PortableHasher` implementation is responsible for ensuring the number is hashed in an
+    /// endian-agnostic way.
     #[inline]
     fn write_i128(&mut self, i: i128) {
         self.write(&i.to_le_bytes());
     }
 
+    /// Write a signed size to the hasher.
+    ///
+    /// The `PortableHasher` implementation is responsible for ensuring the number is hashed in an
+    /// endian-agnostic way, and that the
     #[inline]
     fn write_isize(&mut self, i: isize) {
+        // Portability: always write isize as a full-sized i64 to remain platform independent.
         self.write_i64(i as i64);
     }
 
+    /// Write a length prefix to the hasher.
+    ///
+    /// The length of a collection should be written to the hasher using this method before any of
+    /// the collection's items are written to the hasher. This is done to prevent various types of
+    /// collision attacks on collections.
+    ///
+    /// The `PortableHasher` implementation is responsible for ensuring the length is written in a
+    /// portable way, such as using a fixed-width integer type and handling endianness consistently.
     #[inline]
     fn write_len_prefix(&mut self, len: usize) {
         self.write_usize(len);
     }
 
+    /// Write a string slice to the hasher.
     #[inline]
     fn write_str(&mut self, s: &str) {
         self.write_len_prefix(s.as_bytes().len());
@@ -112,6 +231,12 @@ pub trait PortableHasher {
     /// length of the slice on every call to `self.write`, `write_bytes` can be overridden to remove
     /// the `write_len_prefix` call.
     ///
+    /// **Warning:** very, very few types are portable across platforms as a byte slice. While this
+    /// method is a big performance win on `std::hash::Hasher`, it's rarely portable! Padding, type
+    /// sizes, and endianness can all vary between platforms. It is not recommended to transmute
+    /// other types into a byte slice for this method. This method should only be used on true
+    /// `&[u8]` byte slices, such as serialized file or image data.
+    ///
     /// Origin for this idea: https://github.com/rust-lang/rust/pull/134134#issuecomment-2535503144
     // TODO(stabilisation): review the addition of write_bytes.
     #[inline]
@@ -121,20 +246,30 @@ pub trait PortableHasher {
     }
 }
 
-/// An alternative to `PortableHasher::finish` with a hasher-specific output type.
+/// An alternative to [`PortableHasher::finish`] with a hasher-specific output type.
+///
+/// TODO: should we allow hashers to have multiple output types, or extensible output types?
 pub trait PortableHasherDigest {
+    /// The type of output produced by the hasher.
     type Output;
 
+    /// Finalizes the hash computation and returns the hasher-specific output value.
     // TODO: review the naming and addition of this method.
     fn digest(&self) -> Self::Output;
 }
 
+/// A trait for building multiple [`PortableHasher`]s that use the same seed.
+///
+/// Similar to [`std::hash::BuildHasher`], but for portable hashers. This lets us cache random
+/// seeds for hashers and quickly instantiate multiple hashers with the same seed.
 pub trait BuildPortableHasher {
+    /// The type of hasher that this builder creates.
     type PortableHasher: PortableHasher;
 
     /// Creates a new instance of the hasher.
     fn build_hasher(&self) -> Self::PortableHasher;
 
+    /// Hash a single object using the hasher.
     fn hash_one<T>(&self, x: T) -> u64
     where
         T: PortableHash,
@@ -144,6 +279,7 @@ pub trait BuildPortableHasher {
         hasher.finish()
     }
 
+    /// Digest a single object using the hasher, returning the hasher-specific output type.
     fn digest_one<T>(&self, x: T) -> <Self::PortableHasher as PortableHasherDigest>::Output
     where
         T: PortableHash,
@@ -155,6 +291,8 @@ pub trait BuildPortableHasher {
     }
 }
 
+/// A default implementation of [`BuildPortableHasher`] that instantiates the [`PortableHasher`]
+/// using its [`Default`] implementation.
 pub struct DefaultBuildPortableHasher<H: PortableHasher + Default> {
     hasher: core::marker::PhantomData<H>,
 }

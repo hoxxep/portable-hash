@@ -8,9 +8,10 @@ Introducing `PortableHash` and `PortableHasher`: a set of traits for portable an
 
 To use `PortableHash`, simply derive or implement it on your types, and choose a `PortableHasher` implementation that suits your needs.
 
-By implementing `PortableHash` on library types, **you promise to guarantee** that:
-- The type is portable across different platforms and versions of Rust, such as not including OS-dependent string encodings.
-- The type hashing logic is stable across all minor versions of your crate. Fields may be reordered, added, or changed, but the `PortableHash::portable_hash` must always hash the same fields in the same order for all crate minor versions.
+By implementing `PortableHash` on library types, **you promise to guarantee** that the type hashing logic is stable across:
+- **All platforms.** Avoid hashing non-portable types such as `OsString`, `OsStr`, or `Path` have platform-specific encodings and representations.
+- **All rust compiler versions.** Avoid mixing `std::hash::Hash` or other non-stable hashing traits to produce a `PortableHash` output.
+- **All minor versions of your crate.** Fields in your types may be reordered, added, or changed, but the `PortableHash::portable_hash` must always hash the same fields in the same order for all crate minor versions.
   - Any breaking changes to the hash output of any type should require a major version bump of your crate, and documentation of the breaking change in your changelog.
   - Be careful with `derive(PortableHash)`. Changing the order of fields in structs or enums will change the hash output. We recommend writing unit tests that hash each of your types against hardcoded hash outputs to check for stability. Fields can be _renamed_ safely, but cannot be re-ordered. Please implement `PortableHash` manually to maintain stability if you need to change the order of fields.
 
