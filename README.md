@@ -2,7 +2,7 @@
 
 Disclaimer: not ready for production, yet!
 
-Introducing `PortableHash` and `PortableHasher`: a set of traits to make portable hashing easy and stable across different platforms and versions of Rust.
+Introducing `PortableHash` and `PortableHasher`: a set of traits for portable and stable hashing across different platforms and compiler versions. Stable, portable hashing made easy!
 
 The standard library `Hash` and `Hasher` traits are not suitable for portable hashing across different platforms and versions of Rust. The hashing of primitive types, standard library types, implementation of `derive(Hash)`, and the default behaviour of `Hasher` methods may all change between platforms and compiler versions. This crate is intended to provide an equally easy to use alternative that is truly stable and portable across platforms and versions of Rust.
 
@@ -12,12 +12,14 @@ Do not use this crate in production yet as it's still under development. Please 
 - [ ] Documentation for the APIs.
 - [ ] Documentation for how to implement portable hashing correctly.
 - [ ] Create a `derive(PortableHash)` macro.
+- [ ] Match the ordering of the `Hasher` trait methods.
 - [ ] Decide on, and/or fully implement, `write_bytes`
 - [ ] Decide on digest/hasher-specific output types. Should the default `finish` instead offer a custom Output type? Use a better name than "digest".
 - [ ] Decide on `!` implementation.
 - [ ] Decide on ptr implementations.
 - [ ] Decide on `write_len_prefix` name change.
 - [ ] Decide on `write_str` default implementation change to a length prefix.
+- [ ] Decide on renaming `BuildPortableHasher` to `PortableBuildHasher`?
 - [ ] Tests and example implementations, including rapidhash, Sha256, BLAKE3, and SipHasher.
 - [ ] Final comment period.
 - [ ] Stabilise with 1.0.
