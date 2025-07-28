@@ -1,0 +1,21 @@
+[package]
+name = "portable-hash"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.83.0"  # prt.addr() limits us here
+repository = "https://github.com/hoxxep/portable-hash"
+description = "Portable, stable hashing traits for Rust."
+keywords = ["hash", "hashing", "stable", "portable", "no-std"]
+readme = "README.md"
+license = "MIT OR Apache-2.0"
+authors = ["Liam Gray <gmail@liamg.me>"]
+exclude = ["Cargo.lock", ".github", ".editorconfig"]
+
+[features]
+default = ["std"]
+alloc = [] # enable PortableHash implementations of alloc types, String and Vec
+nightly = []  # enable PortableHash implementation on !
+std = ["alloc"]  # enable PortableHash implementations of std library types
+
+[dependencies]
+portable-hash-macros = { version = "0.1.0", path = "../portable-hash-macros" }

@@ -1,0 +1,1 @@
+This crate provides macros for the [portable-hash](https://crates.io/crates/portable-hash) crate, which is a set of traits for portable and stable hashing across different platforms and compiler versions. Don't use this crate directly.

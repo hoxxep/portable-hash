@@ -8,21 +8,32 @@ Introducing `PortableHash` and `PortableHasher`: a set of traits for portable an
 
 To use `PortableHash`, simply derive or implement it on your types, and choose a `PortableHasher` implementation that suits your needs.
 
+By implementing `PortableHash` on library types, you must guarantee that:
+- The type is portable across different platforms and versions of Rust, such as not including OS-dependent string encodings.
+- The type hashing logic is stable across all minor versions of your crate. Fields may be reordered, added, or changed, but the `PortableHash::portable_hash` must always hash the same fields in the same order for all crate minor versions.
+
 ```rust
 use portable_hash::PortableHash;
 use rapidhash::v3::RapidBuildHasher;
 
 #[derive(PortableHash, Default)]
 struct MyType {
-    field1: u32,
-    field2: String,
+    a: u32,
+    b: String,
 }
 
-let mut hasher = RapidHasher::default();
-let object = MyType::default();
-object.portable_hash(&mut hasher);
+let mut hasher = RapidHasher::default ();
+let object = MyType::default ();
+object.portable_hash( & mut hasher);
 let hash = hasher.finish();
 ```
+
+<details>
+<summary><strong>Examples of hashable, but not portable types.</strong></summary>
+
+`OsString`, `OsStr`, and `Path` are examples of types that vary between platforms. The string encodings of these types can differ based on the operating system, making them unsuitable for portable hashing. They can safely derive `std::hash::Hash` for in-memory hashmaps, but `PortableHash` is explicitly _not_ implemented on these types.
+
+</details>
 
 Hashers that implement `PortableHasher`:
 - [rapidhash](https://crates.io/crates/rapidhash): A fast, non-cryptographic, minimally DoS resistant hasher.
@@ -70,16 +81,18 @@ Do not use this crate in production yet as it's still under development. Please 
 ## TODO
 - [ ] Documentation for the APIs.
 - [ ] Documentation for how to implement portable hashing correctly.
-- [ ] Create a `derive(PortableHash)` macro.
+- [ ] Verify the `derive(PortableHash)` macro produces stable enum hashing.
+- [ ] Compare to [anyhash](https://crates.io/crates/anyhash), is there a need for a new crate? Do we want to follow the same `HasherWrite` pattern?
 - [ ] Match the ordering of the `Hasher` trait methods.
 - [ ] Decide on, and/or fully implement, `write_bytes`
 - [ ] Decide on removing `write_usize` and `write_isize` methods.
 - [ ] Decide on digest/hasher-specific output types. Should the default `finish` instead offer a custom Output type? Use a better name than "digest".
 - [ ] Decide on `!` implementation.
-- [ ] Decide on ptr implementations.
+- [ ] Decide on ptr implementations, or remove hashing pointers.
 - [ ] Decide on `write_len_prefix` name change.
 - [ ] Decide on `write_str` default implementation change to a length prefix.
 - [ ] Decide on renaming `BuildPortableHasher` to `PortableBuildHasher`?
+- [ ] Review many of the enum types with impl to avoid reordering etc attacks.
 - [ ] Tests and example implementations, including rapidhash, Sha256, BLAKE3, and SipHasher.
 - [ ] Final comment period.
 - [ ] Stabilise with 1.0.

@@ -1,4 +1,10 @@
+#![doc = include_str!("../README.md")]
+#![cfg_attr(not(feature = "std"), no_std)]
+
 mod impls;
+
+/// A derive macro for [`PortableHash`].
+pub use portable_hash_macros::PortableHash;
 
 pub trait PortableHash {
     /// Computes the hash of the object using the specified hasher.
@@ -154,6 +160,7 @@ impl<H: PortableHasher + Default> BuildPortableHasher for DefaultBuildPortableHa
 mod tests {
     use crate::PortableHash;
 
+    // #[derive(PortableHash)]
     struct TestObject {
         a: u32,
         b: String,
