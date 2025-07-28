@@ -54,6 +54,7 @@ Implementing `PortableHasher` is very similar to implementing the standard libra
 Your crate must provide the following guarantees when implementing `PortableHasher`:
 - The hash output must be stable across all minor versions of your crate.
 - Integer types are hashed consistently across all platforms, explicitly choosing little-endian or big-endian encoding.
+- Use `default-features = false` when adding `portable-hash` as a dependency, so end users can opt to disable the `std` feature.
 
 ## What's wrong with the `std::hash` traits?
 The standard library `Hash` and `Hasher` traits are not suitable for portable hashing across different platforms and versions of Rust. The hashing of primitive types, standard library types, implementation of `derive(Hash)`, and the default behaviour of `Hasher` methods may all change between platforms and compiler versions. This crate is intended to provide an equally easy to use alternative that is truly stable and portable across platforms and versions of Rust.
@@ -92,22 +93,22 @@ Do not use this crate in production yet as it's still under development. Please 
 - [ ] Documentation for the APIs.
 - [ ] Documentation for how to implement portable hashing correctly.
 - [x] Create a `derive(PortableHash)` macro.
-- [ ] Review the `derive(PortableHash)` macro to produce stable enum hashing. Re-ordering will change the hash output.
+- [ ] Review the `derive(PortableHash)` macro to produce stable enum hashing. Re-ordering currently changes the hash output, while renaming is safe.
 - [ ] Compare to [anyhash](https://crates.io/crates/anyhash). It does not promise stability or hash types in a DoS-resistant way. But do we want to follow the same `HasherWrite` pattern?
 - [x] Match the ordering of the `Hasher` trait methods.
-- [ ] Decide on, and/or fully implement, `write_bytes`.
+- [x] Decide on, and/or fully implement, `write_bytes`.
 - [ ] Decide on removing `write_usize` and `write_isize` methods, as these types are not portable by default, unless we force them to always be `write_u64`?
 - [ ] Decide on digest/hasher-specific output types.
   - [ ] Should the default `finish` instead offer a custom Output type?
   - [ ] Use a better name for custom outputs than "digest".
   - [ ] Should cryptographic hashes implement `PortableHasher`? Is the `sha-hasher` a reasonable thing to publish?
 - [ ] Decide on `!` implementation, or remove the nightly feature.
-- [ ] Decide on ptr implementations, or remove hashing pointers.
-- [ ] Decide on `write_len_prefix` name change.
-- [ ] Decide on `write_str` default implementation change to a length prefix.
+- [x] Decide on ptr implementations, or remove hashing pointers. Removed as non portable.
+- [ ] Decide on `write_len_prefix` name change (differs from `write_length_prefix` in the std library).
+- [ ] Decide on `write_str` default implementation change to use a length prefix.
 - [ ] Decide on renaming `BuildPortableHasher` to `PortableBuildHasher`?
 - [ ] Decide on `std` being a default feature or not.
-  - [ ] Document that Hashers should use `no-default-features` so users can choose what to include.
+  - [x] Document that Hasher libraries should use `default-features = false` so users can choose what to include.
 - [ ] Review many of the primitive and enum `PortableHash` implementations for stability and DoS resistance, double-check the manual `write_u8` enum discriminant keys.
 - [ ] Tests and example implementations, including rapidhash, Sha256, BLAKE3, and SipHasher.
 - [ ] Final comment period.

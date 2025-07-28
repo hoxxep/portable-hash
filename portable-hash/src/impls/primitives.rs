@@ -147,28 +147,3 @@ impl<T: ?Sized + PortableHash> PortableHash for &mut T {
     }
 }
 
-impl<T: ?Sized> PortableHash for *const T {
-    /// Hashes a raw pointer by its address.
-    ///
-    /// Accessing the metadata of a raw pointer was not stable when PortableHash was built, and the
-    /// Metadata type may also change in the future.
-    #[inline]
-    fn portable_hash<H: PortableHasher>(&self, state: &mut H) {
-        // let (address, metadata) = self.to_raw_parts();
-        state.write_usize(self.addr());
-        // metadata.hash(state);
-    }
-}
-
-impl<T: ?Sized> PortableHash for *mut T {
-    /// Hashes a raw pointer by its address.
-    ///
-    /// Accessing the metadata of a raw pointer was not stable when PortableHash was built, and the
-    /// Metadata type may also change in the future.
-    #[inline]
-    fn portable_hash<H: PortableHasher>(&self, state: &mut H) {
-        // let (address, metadata) = self.to_raw_parts();
-        state.write_usize(self.addr());
-        // metadata.hash(state);
-    }
-}

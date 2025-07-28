@@ -104,6 +104,15 @@ pub trait PortableHasher {
         self.write(s.as_bytes());
     }
 
+    /// `write_bytes` may be called by types that can safely serialize `[T]` into `[u8]` safely.
+    ///
+    /// Currently, this is primarily called for unpadded numeric slices, such as `&[u8]`, `&[u16]`.
+    /// To provide some DoS resistance, the hasher should consume the length of the slice somehow.
+    /// For hashers that do not care for DoS resistance, or for algoirthms that incorporate the
+    /// length of the slice on every call to `self.write`, `write_bytes` can be overridden to remove
+    /// the `write_len_prefix` call.
+    ///
+    /// Origin for this idea: https://github.com/rust-lang/rust/pull/134134#issuecomment-2535503144
     // TODO(stabilisation): review the addition of write_bytes.
     #[inline]
     fn write_bytes(&mut self, bytes: &[u8]) {
