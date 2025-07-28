@@ -13,7 +13,7 @@ By implementing `PortableHash` on library types, you must guarantee that:
 - The type hashing logic is stable across all minor versions of your crate. Fields may be reordered, added, or changed, but the `PortableHash::portable_hash` must always hash the same fields in the same order for all crate minor versions.
 
 ```rust
-use portable_hash::PortableHash;
+use portable_hash::{PortableHash, PortableHasher, PortableHasherDigest};
 use sha_hasher::Sha256Hasher;
 
 #[derive(PortableHash, Default)]
@@ -22,10 +22,15 @@ struct MyType {
     b: String,
 }
 
+let object = MyType { a: 42, b: "Hello".to_string() };
+
 let mut hasher = Sha256Hasher::default();
-let object = MyType::default();
 object.portable_hash(&mut hasher);
-let hash = hasher.finish();
+assert_eq!(hasher.finish(), 5333351996764360352, "u64 output");
+assert_eq!(hasher.digest(), [
+    160, 142, 66, 61, 98, 223, 3, 74, 108, 15, 1, 253, 229, 169, 86, 215,
+    117, 111, 201, 32, 16, 24, 16, 174, 206, 67, 25, 224, 226, 174, 4, 168
+], "hasher-specific output type");
 ```
 
 <details>
