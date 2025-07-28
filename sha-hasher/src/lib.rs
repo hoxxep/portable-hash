@@ -57,8 +57,8 @@ mod tests {
 
         let mut hasher = Sha256Hasher::default();
         object.portable_hash(&mut hasher);
-        assert_eq!(hasher.finish(), 4525177376694807513);
-        assert_eq!(hasher.digest(), [217, 43, 135, 67, 217, 168, 204, 62, 204, 237, 191, 246, 214, 170, 36, 71, 160, 219, 216, 185, 14, 198, 213, 168, 27, 249, 66, 76, 35, 41, 181, 146]);
+        assert_eq!(hasher.finish(), 15114829174459170361);
+        assert_eq!(hasher.digest(), [57, 126, 89, 104, 13, 169, 194, 209, 154, 89, 137, 46, 240, 254, 41, 255, 110, 158, 34, 166, 227, 201, 55, 51, 118, 163, 31, 35, 208, 245, 158, 175]);
     }
 
     #[derive(PortableHash)]

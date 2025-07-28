@@ -4,31 +4,36 @@
 
 use crate::{PortableHash, PortableHasher};
 
+impl PortableHash for u8 {
+    #[inline]
+    fn portable_hash<H: PortableHasher>(&self, state: &mut H) {
+        state.write_u8(*self)
+    }
+
+    /// Override hash_slice to avoid writing a length prefix for bytes.
+    #[inline]
+    fn portable_hash_slice<H: PortableHasher>(data: &[u8], state: &mut H) {
+        state.write_bytes(data)
+    }
+}
+
 macro_rules! impl_write {
     ($(($ty:ident, $meth:ident),)*) => {$(
 
+        /// We differ from the standard library implementation here, as we do _not_ allow
+        /// [`portable_hash_slice`] to transmute unpadded numbers into a byte slice. This is
+        /// because we need to control the endianness of the numbers when hashing, as a simple
+        /// byte slice would not be portable across platforms.
         impl PortableHash for $ty {
             #[inline]
             fn portable_hash<H: PortableHasher>(&self, state: &mut H) {
                 state.$meth(*self)
-            }
-
-            #[inline]
-            fn portable_hash_slice<H: PortableHasher>(data: &[$ty], state: &mut H) {
-                let newlen = size_of_val(data);
-                let ptr = data.as_ptr() as *const u8;
-                // SAFETY: `ptr` is valid and aligned, as this macro is only used
-                // for numeric primitives which have no padding. The new slice only
-                // spans across `data` and is never mutated, and its total size is the
-                // same as the original `data` so it can't be over `isize::MAX`.
-                state.write_bytes(unsafe { core::slice::from_raw_parts(ptr, newlen) })
             }
         }
     )*}
 }
 
 impl_write! {
-    (u8, write_u8),
     (u16, write_u16),
     (u32, write_u32),
     (u64, write_u64),

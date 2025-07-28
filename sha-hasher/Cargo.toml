@@ -12,8 +12,8 @@ license = "MIT OR Apache-2.0"
 authors = ["Liam Gray <gmail@liamg.me>"]
 
 [dependencies]
-portable-hash = { version = "0.1.0", default-features = false }
+portable-hash = { workspace = true, default-features = false }
 sha2 = "0.10.9"
 
 [dev-dependencies]
-portable-hash = { version = "0.1.0", features = ["std"] }
+portable-hash = { workspace = true, features = ["std"] }
