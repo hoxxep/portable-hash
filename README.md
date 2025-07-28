@@ -41,8 +41,8 @@ assert_eq!(hasher.digest(), [
 ```
 
 Hashers that implement `PortableHasher`:
-- [sha-hasher](https://crates.io/crates/sha-hasher): A SHA-256 hasher that implements `PortableHasher` for stable and portable hashing.
-- Coming soon: [rapidhash](https://crates.io/crates/rapidhash): A fast, non-cryptographic, minimally DoS resistant hasher.
+- [sha-hasher](https://crates.io/crates/sha-hasher): A stable SHA-256 hasher that implements `PortableHasher`.
+- [rapidhash](https://crates.io/crates/rapidhash) (under development): A fast, non-cryptographic, portable, minimally DoS resistant hasher.
 - TBC: sha, blake, siphash, seahash etc. hashers.
 
 ## Implementing PortableHasher for Hash Library Authors
@@ -90,11 +90,11 @@ Do not use this crate in production yet as it's still under development. Please 
 - [ ] Documentation for the APIs.
 - [ ] Documentation for how to implement portable hashing correctly.
 - [x] Create a `derive(PortableHash)` macro.
-- [ ] Verify the `derive(PortableHash)` macro produces stable enum hashing.
+- [ ] Fix the `derive(PortableHash)` macro to produce stable enum hashing. It's currently unstable!
 - [ ] Compare to [anyhash](https://crates.io/crates/anyhash). It does not promise stability or hash types in a DoS-resistant way. But do we want to follow the same `HasherWrite` pattern?
-- [ ] Match the ordering of the `Hasher` trait methods.
-- [ ] Decide on, and/or fully implement, `write_bytes`
-- [ ] Decide on removing `write_usize` and `write_isize` methods.
+- [x] Match the ordering of the `Hasher` trait methods.
+- [ ] Decide on, and/or fully implement, `write_bytes`.
+- [ ] Decide on removing `write_usize` and `write_isize` methods, as these types are not portable by default, unless we force them to always be `write_u64`?
 - [ ] Decide on digest/hasher-specific output types.
   - [ ] Should the default `finish` instead offer a custom Output type?
   - [ ] Use a better name for custom outputs than "digest".
@@ -106,7 +106,7 @@ Do not use this crate in production yet as it's still under development. Please 
 - [ ] Decide on renaming `BuildPortableHasher` to `PortableBuildHasher`?
 - [ ] Decide on `std` being a default feature or not.
   - [ ] Document that Hashers should use `no-default-features` so users can choose what to include.
-- [ ] Review many of the enum types with impl to avoid reordering etc attacks.
+- [ ] Review many of the primitive and enum `PortableHash` implementations for stability and DoS resistance, double-check the manual `write_u8` enum discriminant keys.
 - [ ] Tests and example implementations, including rapidhash, Sha256, BLAKE3, and SipHasher.
 - [ ] Final comment period.
 - [ ] Stabilise with 1.0.

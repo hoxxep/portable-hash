@@ -21,7 +21,7 @@ macro_rules! impl_write {
                 // for numeric primitives which have no padding. The new slice only
                 // spans across `data` and is never mutated, and its total size is the
                 // same as the original `data` so it can't be over `isize::MAX`.
-                state.write(unsafe { core::slice::from_raw_parts(ptr, newlen) })
+                state.write_bytes(unsafe { core::slice::from_raw_parts(ptr, newlen) })
             }
         }
     )*}
@@ -129,7 +129,6 @@ impl_hash_tuple! { T B C D E F G H I J K L }
 impl<T: PortableHash> PortableHash for [T] {
     #[inline]
     fn portable_hash<H: PortableHasher>(&self, state: &mut H) {
-        state.write_len_prefix(self.len());
         PortableHash::portable_hash_slice(self, state)
     }
 }

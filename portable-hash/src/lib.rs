@@ -15,7 +15,10 @@ pub trait PortableHash {
     where
         Self: Sized,
     {
-        // TODO: adding a length prefix here differs from the standard library.
+        // TODO(stability): we diverge from the standard library here by adding a length prefix.
+        // the standard library implements the len_prefix in `impl PortableHasher for [T]`, but we
+        // allow hash_slice to be overridden by some types to instead use the `write_bytes` method,
+        // which allows the hasher to determine how/whether to handle a length prefix in these cases.
         state.write_len_prefix(data.len());
         for item in data.iter() {
             item.portable_hash(state);
@@ -24,6 +27,9 @@ pub trait PortableHash {
 }
 
 pub trait PortableHasher {
+    /// Finalizes the hash computation and returns the hash value.
+    fn finish(&self) -> u64;
+
     /// Writes a byte slice to the hasher.
     fn write(&mut self, bytes: &[u8]);
 
@@ -53,6 +59,11 @@ pub trait PortableHasher {
     }
 
     #[inline]
+    fn write_usize(&mut self, i: usize) {
+        self.write_u64(i as u64);
+    }
+
+    #[inline]
     fn write_i8(&mut self, i: i8) {
         self.write(&i.to_le_bytes());
     }
@@ -78,21 +89,13 @@ pub trait PortableHasher {
     }
 
     #[inline]
-    fn write_usize(&mut self, i: usize) {
-        self.write_u64(i as u64);
-    }
-
-    #[inline]
     fn write_isize(&mut self, i: isize) {
         self.write_i64(i as i64);
     }
 
-    // TODO: review the addition of write_bytes.
-    // TODO: link up the impl for write_bytes
     #[inline]
-    fn write_bytes(&mut self, bytes: &[u8]) {
-        self.write_len_prefix(bytes.len());
-        self.write(bytes);
+    fn write_len_prefix(&mut self, len: usize) {
+        self.write_usize(len);
     }
 
     #[inline]
@@ -101,13 +104,12 @@ pub trait PortableHasher {
         self.write(s.as_bytes());
     }
 
+    // TODO(stabilisation): review the addition of write_bytes.
     #[inline]
-    fn write_len_prefix(&mut self, len: usize) {
-        self.write_usize(len);
+    fn write_bytes(&mut self, bytes: &[u8]) {
+        self.write_len_prefix(bytes.len());
+        self.write(bytes);
     }
-
-    /// Finalizes the hash computation and returns the hash value.
-    fn finish(&self) -> u64;
 }
 
 /// An alternative to `PortableHasher::finish` with a hasher-specific output type.

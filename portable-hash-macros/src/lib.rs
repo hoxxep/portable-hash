@@ -29,6 +29,7 @@ pub fn derive_portable_hash(input: TokenStream1) -> TokenStream1 {
     let mut types = Vec::new();
 
     match input.data {
+        // Stability: structs are hashed in the order of their fields.
         Data::Struct(x) => match x.fields {
             Fields::Named(x) => {
                 let fields = x.named.iter().map(|x| {
@@ -55,6 +56,7 @@ pub fn derive_portable_hash(input: TokenStream1) -> TokenStream1 {
             Fields::Unit => (),
         },
 
+        // Stability: (TODO) enums must be keyed with a discriminant for DoS resistance.
         Data::Enum(x) => {
             let mut variant_tokens = TokenStream::new();
 
@@ -101,6 +103,10 @@ pub fn derive_portable_hash(input: TokenStream1) -> TokenStream1 {
             }
 
             quote! {
+                // TODO(stability): use a portable discriminant for hashing
+                //   named -> use hash(str(variant_name)) + hash(data)
+                //   unnamed -> use hash(index) + hash(data)
+                //   unit -> use hash(index)
                 #hash::hash(&core::mem::discriminant(self), state);
                 match self {
                     #variant_tokens

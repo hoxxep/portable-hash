@@ -1,20 +1,25 @@
-use portable_hash::{PortableHasher, PortableHasherDigest};
+use portable_hash::{DefaultBuildPortableHasher, PortableHasher, PortableHasherDigest};
 use sha2::Digest;
 
-/// A SHA-256 `PortableHasher` implementation.
+/// A SHA-256 [`PortableHasher`] implementation.
+///
+/// TODO: key the hasher for DoS resistance?
 #[derive(Default, Clone)]
 pub struct Sha256Hasher {
     hasher: sha2::Sha256,
 }
 
-impl PortableHasher for Sha256Hasher {
-    fn write(&mut self, bytes: &[u8]) {
-        self.hasher.update(bytes);
-    }
+/// A SHA-256 [`portable_hash::BuildPortableHasher`] that instantiates a default [`Sha256Hasher`].
+pub type Sha256BuildHasher = DefaultBuildPortableHasher<Sha256Hasher>;
 
+impl PortableHasher for Sha256Hasher {
     fn finish(&self) -> u64 {
         let result = self.hasher.clone().finalize();
         u64::from_le_bytes(result[0..8].try_into().unwrap())
+    }
+
+    fn write(&mut self, bytes: &[u8]) {
+        self.hasher.update(bytes);
     }
 }
 
@@ -52,7 +57,7 @@ mod tests {
 
         let mut hasher = Sha256Hasher::default();
         object.portable_hash(&mut hasher);
-        assert_eq!(hasher.finish(), 15114829174459170361);
-        assert_eq!(hasher.digest(), [57, 126, 89, 104, 13, 169, 194, 209, 154, 89, 137, 46, 240, 254, 41, 255, 110, 158, 34, 166, 227, 201, 55, 51, 118, 163, 31, 35, 208, 245, 158, 175]);
+        assert_eq!(hasher.finish(), 4525177376694807513);
+        assert_eq!(hasher.digest(), [217, 43, 135, 67, 217, 168, 204, 62, 204, 237, 191, 246, 214, 170, 36, 71, 160, 219, 216, 185, 14, 198, 213, 168, 27, 249, 66, 76, 35, 41, 181, 146]);
     }
 }
