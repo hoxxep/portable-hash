@@ -145,7 +145,7 @@ pub trait BuildPortableHasher {
 }
 
 pub struct DefaultBuildPortableHasher<H: PortableHasher + Default> {
-    hasher: std::marker::PhantomData<H>,
+    hasher: core::marker::PhantomData<H>,
 }
 
 impl<H: PortableHasher + Default> BuildPortableHasher for DefaultBuildPortableHasher<H> {
@@ -153,37 +153,5 @@ impl<H: PortableHasher + Default> BuildPortableHasher for DefaultBuildPortableHa
 
     fn build_hasher(&self) -> Self::PortableHasher {
         H::default()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::PortableHash;
-
-    // #[derive(PortableHash)]
-    struct TestObject {
-        a: u32,
-        b: String,
-        c: Vec<u64>,
-        d: (u8, u16, u32),
-    }
-
-    impl PortableHash for TestObject {
-        fn portable_hash<H: super::PortableHasher>(&self, state: &mut H) {
-            self.a.portable_hash(state);
-            self.b.portable_hash(state);
-            self.c.portable_hash(state);
-            self.d.portable_hash(state);
-        }
-    }
-
-    #[test]
-    fn it_works() {
-        let _object = TestObject {
-            a: 42,
-            b: "Hello, World!".to_string(),
-            c: vec![1, 2, 3, 4, 5],
-            d: (8, 16, 32),
-        };
     }
 }

@@ -1,0 +1,11 @@
+[package]
+name = "sha-hasher"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+portable-hash = { workspace = true, default-features = false }
+sha2 = "0.10.9"
+
+[dev-dependencies]
+portable-hash = { workspace = true, features = ["std"] }

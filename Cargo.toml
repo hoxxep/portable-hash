@@ -3,4 +3,10 @@ resolver = "2"
 members = [
     "portable-hash",
     "portable-hash-macros",
+    "sha-hasher",
 ]
+
+[workspace.dependencies]
+portable-hash = { path = "portable-hash", default-features = false }
+portable-hash-macros = { path = "portable-hash-macros", default-features = false }
+sha-hasher = { path = "sha-hasher", default-features = false }

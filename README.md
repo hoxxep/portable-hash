@@ -14,7 +14,7 @@ By implementing `PortableHash` on library types, you must guarantee that:
 
 ```rust
 use portable_hash::PortableHash;
-use rapidhash::v3::RapidBuildHasher;
+use sha_hasher::Sha256Hasher;
 
 #[derive(PortableHash, Default)]
 struct MyType {
@@ -22,9 +22,9 @@ struct MyType {
     b: String,
 }
 
-let mut hasher = RapidHasher::default ();
-let object = MyType::default ();
-object.portable_hash( & mut hasher);
+let mut hasher = Sha256Hasher::default();
+let object = MyType::default();
+object.portable_hash(&mut hasher);
 let hash = hasher.finish();
 ```
 
@@ -86,12 +86,17 @@ Do not use this crate in production yet as it's still under development. Please 
 - [ ] Match the ordering of the `Hasher` trait methods.
 - [ ] Decide on, and/or fully implement, `write_bytes`
 - [ ] Decide on removing `write_usize` and `write_isize` methods.
-- [ ] Decide on digest/hasher-specific output types. Should the default `finish` instead offer a custom Output type? Use a better name than "digest".
+- [ ] Decide on digest/hasher-specific output types.
+  - [ ] Should the default `finish` instead offer a custom Output type?
+  - [ ] Use a better name for custom outputs than "digest".
+  - [ ] Should cryptographic hashes implement `PortableHasher`? Is the `sha-hasher` a reasonable thing to publish?
 - [ ] Decide on `!` implementation.
 - [ ] Decide on ptr implementations, or remove hashing pointers.
 - [ ] Decide on `write_len_prefix` name change.
 - [ ] Decide on `write_str` default implementation change to a length prefix.
 - [ ] Decide on renaming `BuildPortableHasher` to `PortableBuildHasher`?
+- [ ] Decide on `std` being a default feature or not.
+  - [ ] Document that Hashers should use `no-default-features` so users can choose what to include.
 - [ ] Review many of the enum types with impl to avoid reordering etc attacks.
 - [ ] Tests and example implementations, including rapidhash, Sha256, BLAKE3, and SipHasher.
 - [ ] Final comment period.

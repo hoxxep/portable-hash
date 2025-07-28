@@ -20,3 +20,13 @@ jobs:
         uses: Swatinem/rust-cache@v2
       - name: Compile and run tests
         run: cargo test --no-fail-fast
+  test-no-std:
+    name: "Tests (no std)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Rust dependency cache
+        uses: Swatinem/rust-cache@v2
+      - name: Compile and run tests (no std)
+        run: cargo test -p portable-hash --no-default-features --no-fail-fast
