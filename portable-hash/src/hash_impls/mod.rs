@@ -1,4 +1,5 @@
 //! Implementations of `PortableHash` for common types.
+
 #[cfg(feature = "alloc")]
 mod alloc_lib;
 mod core_lib;

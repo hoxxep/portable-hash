@@ -10,7 +10,7 @@ use alloc::{
     vec::Vec,
 };
 
-use crate::{PortableHash, PortableHasher};
+use crate::{PortableHash, PortableHasher, PortableOrd};
 
 impl<T: ToOwned + PortableHash> PortableHash for Cow<'_, T> {
     fn portable_hash<H: PortableHasher>(&self, state: &mut H) {
@@ -41,7 +41,7 @@ impl<T: PortableHash> PortableHash for Arc<T> {
 
 impl<K, V> PortableHash for BTreeMap<K, V>
 where
-    K: PortableHash,
+    K: PortableHash + PortableOrd,
     V: PortableHash,
 {
     #[inline]
@@ -56,7 +56,7 @@ where
 
 impl<K> PortableHash for BTreeSet<K>
 where
-    K: PortableHash,
+    K: PortableHash + PortableOrd,
 {
     #[inline]
     fn portable_hash<H: PortableHasher>(&self, state: &mut H) {

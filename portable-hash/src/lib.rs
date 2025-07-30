@@ -4,7 +4,8 @@
 #![warn(missing_docs)]
 #![deny(unused_must_use)]
 
-mod impls;
+mod hash_impls;
+mod ord_impls;
 
 /// A derive macro for [`PortableHash`].
 pub use portable_hash_macros::PortableHash;
@@ -71,6 +72,18 @@ pub trait PortableHash {
             item.portable_hash(state);
         }
     }
+}
+
+/// A trait marker that determines if a type's Ord is portablt across platforms.
+///
+/// TODO: further document the requirements for types that implement this trait.
+pub trait PortableOrd: Ord {
+    /// Denotes whether unstable sorting can be used for this type. Set to true if and
+    /// only if `a == b` implies `a` and `b` are fully indistinguishable.
+    const CAN_USE_UNSTABLE_SORT: bool;
+
+    /// Do you really though?
+    const I_KNOW_WHAT_I_AM_DOING: ();
 }
 
 /// A trait for hashers that can hash any [`PortableHash`] type, inspired by [`std::hash::Hasher`].

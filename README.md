@@ -4,6 +4,8 @@ Note: not ready for production, yet!
 
 Introducing `PortableHash` and `PortableHasher`: a set of traits for portable and stable hashing across different platforms and compiler versions. Stable, portable hashing made easy! This crate does not offer a hasher implementation, but provides the traits and macros to link data types implementing `PortableHash` with hashers implementing `PortableHasher`.
 
+**Sponsored by [Upon](https://uponvault.com)**, inheritance vaults for your digital life – ensuring your family can access your devices, accounts, and assets when the unexpected happens.
+
 ## Using PortableHash
 
 To use `PortableHash`, simply derive or implement it on your types, and choose a `PortableHasher` implementation that suits your needs.
@@ -95,6 +97,7 @@ Do not use this crate in production yet as it's still under development. Please 
 - [ ] Documentation for how to implement portable hashing correctly.
 - [x] Create a `derive(PortableHash)` macro.
 - [ ] Review the `derive(PortableHash)` macro to produce stable enum hashing. Re-ordering currently changes the hash output, while renaming is safe.
+- [ ] Create a `PortableOrd` marker trait for collections that require stable ordering to hash portably, such as BTrees.
 - [ ] Compare to [anyhash](https://crates.io/crates/anyhash). It does not promise stability or hash types in a DoS-resistant way. But do we want to follow the same `HasherWrite` pattern?
 - [x] Match the ordering of the `Hasher` trait methods.
 - [x] Decide on, and/or fully implement, `write_bytes`.

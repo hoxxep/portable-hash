@@ -81,8 +81,7 @@ impl PortableHash for Infallible {
 impl PortableHash for CStr {
     #[inline]
     fn portable_hash<H: PortableHasher>(&self, state: &mut H) {
-        // TODO(stabilisation): check if to_bytes is our desired approach.
-        state.write_bytes(self.to_bytes());
+        state.write_bytes(self.to_bytes_with_nul());
     }
 }
 
