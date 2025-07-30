@@ -2,16 +2,17 @@ This changelog applies to the `portable-hash` crate. Any changes to the `portabl
 
 # v0.4.0
 
-- **Breaking:** Change default `write_str` behaviour to use a `0xFF` suffix instead of a length prefix [to match std](https://github.com/rust-lang/rust/pull/134134).
+- **Breaking:** Change default `write_str` behaviour to use a `write_u8(0xFF)` suffix instead of a length prefix [to match std](https://github.com/rust-lang/rust/pull/134134).
 - **Breaking:** Removed the `PortableHash` implementation for `!`.
-- **New:** Reduced MSRV to 1.57, and used `rustversion` to gate certain implementations based on stability.
 - **New:** Added `write_short(bytes: [u8; LEN])` to `PortableHasher` for hashing short fixed-length byte arrays.
+- Reduced MSRV to 1.57, and used `rustversion` to gate certain `PortableHash` implementations based on compiler version.
 
 # v0.3.0
 
 - **Breaking:** Fixed unpadded integer slice hashing portability by removing the old transmute approach.
 - **New:** Added the `PortableOrd` marker trait for hashable types. This is used when hashing collections that require stable ordering to hash portably, such as BTrees.
-- **New:** Improved documentation for most types and methods.
+- Improved documentation for most types and methods.
+- Bump portable-hash-macros to 0.1.1 to reduce the MSRV to 1.57.
 
 # v0.2.0
 

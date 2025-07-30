@@ -91,6 +91,8 @@ This is so fraught with accidental footguns, `PortableHash` and `PortableHasher`
 Do not use this crate in production yet as it's still under development. Please wait for the 1.0 release to stabilise the API and hash output. The `PortableHash` and `PortableHasher` traits deviate from the standard library in various ways that still need to be reviewed and documented, and are subject to change. Subscribe to notifications on the [stabilisation issue](https://github.com/hoxxep/portable-hash/issues/1) to be notified of the 1.0 release. Issues and contributions are very welcome.
 
 ## TODO before stabilisation
+Everything is up for debate in the GitHub issues, this list is not exhaustive, and don't consider any decisions as final.
+
 - [x] Basic `PortableHash` and `PortableHasher` traits.
 - [x] Implement `PortableHash` on many primitive and standard library types.
 - [x] Create a `derive(PortableHash)` macro.
@@ -105,17 +107,19 @@ Do not use this crate in production yet as it's still under development. Please 
 - [x] Decide on `std` being a default feature.
   - [x] Document that Hasher libraries should use `default-features = false` so users can choose what to include.
 - [x] ~Decide on `write_str` default implementation [change to use a length prefix](https://github.com/rust-lang/rust/pull/134134).~ Match std for performance in bytewise hashers. Non-bytewise hashers can implement their own `write_str` method. Will change the default if the std implementation changes.
-- [ ] Review the `derive(PortableHash)` macro to produce stable enum hashing. Re-ordering currently changes the hash output, while renaming is safe.
-- [ ] Documentation for the APIs.
-- [ ] Documentation for how to implement portable hashing correctly.
-- [ ] Should the `PortableHasher` trait methods be renamed? Is there a risk of accidentally calling the wrong implementation of `write` if `Hasher` and `PortableHasher` are implemented at the same time? Should be a "no" when implementing `PortableHash::hash`.
+- [x] ~Decide on renaming `BuildPortableHasher` to `PortableBuildHasher`?~ We're building a `PortableHasher`. Keep as-is.
+- [x] ~Should the `PortableHasher` trait methods be renamed?~ Is there a risk of accidentally calling the wrong implementation of `write` if `Hasher` and `PortableHasher` are implemented at the same time? Implementing `PortableHasher::portable_hash` should be over the generic type without conflicts, and the `write_*` methods should ask to specify which trait to call if it's ambiguous.
 - [ ] Decide on hasher-specific output types.
-    - [ ] Should the default `finish` instead offer a custom Output type?
-    - [ ] Use a better name for custom outputs than "digest".
-    - [ ] Should cryptographic hashes implement `PortableHasher`? Is the `sha-hasher` a reasonable thing to publish?
-- [ ] Decide on renaming `BuildPortableHasher` to `PortableBuildHasher`?
-- [ ] Review many of the primitive and enum `PortableHash` implementations for stability and DoS resistance, double-check the manual `write_u8` enum discriminant keys.
+  - [ ] Should the default `finish` instead offer a custom Output type, and include an optional `finish_u64`?
+  - [ ] Use a better name for custom outputs than "digest".
+  - [ ] Should cryptographic hashes implement `PortableHasher`? Is the `sha-hasher` a reasonable thing to publish?
+- [ ] Review the `derive(PortableHash)` macro for stable enum hashing. Re-ordering currently changes the hash output, while renaming is safe.
+- [ ] Review many of the primitive and enum `PortableHash` implementations for stability and DoS resistance.
+  - [ ] Double-check the manual `write_u8` enum discriminant keys
+  - [ ] Double-check the various `Range*` impls.
 - [ ] Tests and example implementations, including rapidhash, Sha256, BLAKE3, and SipHasher.
+- [ ] Review documentation for the APIs.
+- [ ] Review documentation for how to implement portable hashing correctly.
 - [ ] Final comment period.
 - [ ] Stabilise with 1.0.
 

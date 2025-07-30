@@ -93,6 +93,9 @@ pub trait PortableOrd: Ord {
 /// A trait for hashers that can hash any [`PortableHash`] type, inspired by [`std::hash::Hasher`].
 ///
 /// Your crate must provide the following guarantees when implementing PortableHasher:
+/// - **Do not use** `Hasher::*` methods to implement `PortableHasher::*` methods. The
+///   `std::hash` traits may change behaviour between compiler versions, please do not mix and
+///   match them.
 /// - The hash output must be stable across all platforms, compiler versions, and minor versions
 ///   of your crate.
 /// - Integer types are hashed consistently across all platforms, explicitly choosing little-endian
@@ -103,6 +106,13 @@ pub trait PortableOrd: Ord {
 /// End users likely want to use a [`BuildPortableHasher`] implementation to create a hasher,
 /// instead of directly using `PortableHasher`. This enables caching the hasher's seed once and
 /// instantiating multiple hashers of the same seed.
+///
+/// TODO(stabilisation): should this trait's methods be renamed to avoid conflicting with the std
+///   `Hasher` trait methods?
+///
+/// TODO(stabilisation): should we recommend implementing `PortableHasher` on an entirely separate
+///   type from the one that implements `Hasher` to avoid accidentally mixing the two? Does rust
+///   prevent confusing the two trait methods sufficiently?
 pub trait PortableHasher {
     /// Finalize the hash computation and return the hash value.
     fn finish(&self) -> u64;
@@ -268,6 +278,11 @@ pub trait PortableHasher {
     /// This method allows for optimizations when writing small fixed-size arrays to the hasher. The
     /// numeric `write_*` methods call this by default.
     ///
+    /// For example, some hashers such as foldhash have internal buffers that are used to store
+    /// integer types. `write_short` could be used to write other small non-integer types into the
+    /// buffer directly, gated behind an `if bytes.len() < LEN` statement that's evaluated at
+    /// compile time.
+    ///
     /// Origin for this idea: [`rustc-stable-hash`](https://github.com/rust-lang/rustc-stable-hash/blob/6780c967c1b9b0f5b49c9cc24d1b97ed584ec3ae/src/stable_hasher.rs#L51)
     ///
     /// TODO(stabilisation): review the addition of write_short.
@@ -279,13 +294,16 @@ pub trait PortableHasher {
 
 /// An alternative to [`PortableHasher::finish`] with a hasher-specific output type.
 ///
-/// TODO(stabilisation): should we allow hashers to have multiple output types, or extensible output types?
+/// TODO(stabilisation): merge this trait into [`PortableHasher`], it makes little sense to be separate.
+///
+/// TODO(stabilisation): could we enable hashers to have multiple output types, or extensible output types?
 pub trait ExtendedPortableHasher: PortableHasher {
     /// The type of output produced by the hasher.
     type Output;
 
     /// Finalizes the hash computation and returns the hasher-specific output value.
-    // TODO(stabilisation): review the naming and addition of this method. Should this be finish(), and move the other to finish_u64()?
+    ///
+    /// TODO(stabilisation): review the naming and addition of this method. Should this be finish(), and move the other to finish_u64()?
     fn digest(&self) -> Self::Output;
 }
 
@@ -300,7 +318,7 @@ pub trait BuildPortableHasher {
     /// Creates a new instance of the hasher.
     fn build_hasher(&self) -> Self::PortableHasher;
 
-    /// Hash a single object using the hasher.
+    /// Hash an object, returning a u64 hash value.
     fn hash_one<T>(&self, x: T) -> u64
     where
         T: PortableHash,
@@ -310,7 +328,7 @@ pub trait BuildPortableHasher {
         hasher.finish()
     }
 
-    /// Digest a single object using the hasher, returning the hasher-specific output type.
+    /// Hash an object, returning a hasher-specific output value.
     fn digest_one<T>(&self, x: T) -> <Self::PortableHasher as ExtendedPortableHasher>::Output
     where
         T: PortableHash,
@@ -323,7 +341,7 @@ pub trait BuildPortableHasher {
 }
 
 /// A default implementation of [`BuildPortableHasher`] that instantiates the [`PortableHasher`]
-/// using its [`Default`] implementation.
+/// using the [`Default`] trait.
 pub struct DefaultBuildPortableHasher<H: PortableHasher + Default> {
     hasher: core::marker::PhantomData<H>,
 }
