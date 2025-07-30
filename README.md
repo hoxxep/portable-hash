@@ -46,7 +46,7 @@ assert_eq!(hasher.digest(), [
 ```
 
 Hashers that implement `PortableHasher`:
-- [sha-hasher](https://crates.io/crates/sha-hasher): A stable SHA-256 hasher that implements `PortableHasher`.
+- [sha-hasher](https://github.com/hoxxep/portable-hasher): The portable-hash test hasher, a stable SHA-256 hasher that implements `PortableHasher`.
 - [rapidhash](https://crates.io/crates/rapidhash) (under development): A fast, non-cryptographic, portable, minimally DoS resistant hasher.
 - TBC: sha, blake, siphash, seahash etc. hashers.
 
