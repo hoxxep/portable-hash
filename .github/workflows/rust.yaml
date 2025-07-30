@@ -71,7 +71,9 @@ jobs:
       - name: Bodge workspace members for package resolution
         run: |
           set -euo pipefail
-          echo "[workspace]\nresolver = \"2\"\nmembers = [\"portable-hash-macros\"]" > Cargo.toml
+          echo '[workspace] > Cargo.toml
+          echo 'resolver = "2"' >> Cargo.toml
+          echo 'members = ["portable-hash-macros"]' >> Cargo.toml
           cat Cargo.toml
       - name: Compile and run tests (no std)
         run: cargo test -p portable-hash-macros --lib --tests --no-default-features --no-fail-fast
