@@ -53,7 +53,7 @@ jobs:
     name: "Tests (MSRV, macro only)"
     runs-on: ubuntu-latest
     env:
-      RUST_VERSION: 1.75.0
+      RUST_VERSION: 1.57.0
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -66,5 +66,8 @@ jobs:
           rustup default ${{ env.RUST_VERSION }}
           cargo -V
           rustc -V
+      - name: Bodge workspace members for package resolution
+        run: |
+          echo "[workspace]\nresolver = "2"\nmembers = [\"portable-hash-macros\"]" > Cargo.toml
       - name: Compile and run tests (no std)
         run: cargo test -p portable-hash-macros --lib --tests --no-default-features --no-fail-fast

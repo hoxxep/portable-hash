@@ -110,7 +110,7 @@ pub fn derive_portable_hash(input: TokenStream1) -> TokenStream1 {
                             .enumerate()
                             .map(|(i, x)| {
                                 types.push(x.ty.clone());
-                                format_ident!("_{i}")
+                                format_ident!("_{}", i)
                             })
                             .collect();
                         quote! {
