@@ -41,7 +41,7 @@ jobs:
         # codebase to ensure that each version boundary is covered. It's unnecessary to test
         # absolutely all releases! Remember to add new versions if we add more boundaries.
         rust_version:
-          - 1.57.0
+          - 1.57.0  # MSRV
           - 1.63.0
           - 1.64.0  # CStr and CString stabilised
           - 1.73.0

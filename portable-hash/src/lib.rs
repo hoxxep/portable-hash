@@ -116,7 +116,7 @@ pub trait PortableHasher {
     /// endian-agnostic way.
     #[inline]
     fn write_u8(&mut self, i: u8) {
-        self.write(&[i]);
+        self.write_short(i.to_le_bytes());
     }
 
     /// Write a 16-bit unsigned integer to the hasher.
@@ -125,7 +125,7 @@ pub trait PortableHasher {
     /// endian-agnostic way.
     #[inline]
     fn write_u16(&mut self, i: u16) {
-        self.write(&i.to_le_bytes());
+        self.write_short(i.to_le_bytes());
     }
 
     /// Write a 32-bit unsigned integer to the hasher.
@@ -134,7 +134,7 @@ pub trait PortableHasher {
     /// endian-agnostic way.
     #[inline]
     fn write_u32(&mut self, i: u32) {
-        self.write(&i.to_le_bytes());
+        self.write_short(i.to_le_bytes());
     }
 
     /// Write a 64-bit unsigned integer to the hasher.
@@ -143,7 +143,7 @@ pub trait PortableHasher {
     /// endian-agnostic way.
     #[inline]
     fn write_u64(&mut self, i: u64) {
-        self.write(&i.to_le_bytes());
+        self.write_short(i.to_le_bytes());
     }
 
     /// Write a 128-bit unsigned integer to the hasher.
@@ -152,7 +152,7 @@ pub trait PortableHasher {
     /// endian-agnostic way.
     #[inline]
     fn write_u128(&mut self, i: u128) {
-        self.write(&i.to_le_bytes());
+        self.write_short(i.to_le_bytes());
     }
 
     /// Write a 64-bit unsigned size to the hasher.
@@ -171,7 +171,7 @@ pub trait PortableHasher {
     /// endian-agnostic way.
     #[inline]
     fn write_i8(&mut self, i: i8) {
-        self.write(&i.to_le_bytes());
+        self.write_short(i.to_le_bytes());
     }
 
     /// Write a 16-bit signed integer to the hasher.
@@ -180,7 +180,7 @@ pub trait PortableHasher {
     /// endian-agnostic way.
     #[inline]
     fn write_i16(&mut self, i: i16) {
-        self.write(&i.to_le_bytes());
+        self.write_short(i.to_le_bytes());
     }
 
     /// Write a 32-bit signed integer to the hasher.
@@ -189,7 +189,7 @@ pub trait PortableHasher {
     /// endian-agnostic way.
     #[inline]
     fn write_i32(&mut self, i: i32) {
-        self.write(&i.to_le_bytes());
+        self.write_short(i.to_le_bytes());
     }
 
     /// Write a 64-bit signed integer to the hasher.
@@ -198,7 +198,7 @@ pub trait PortableHasher {
     /// endian-agnostic way.
     #[inline]
     fn write_i64(&mut self, i: i64) {
-        self.write(&i.to_le_bytes());
+        self.write_short(i.to_le_bytes());
     }
 
     /// Write a 128-bit signed integer to the hasher.
@@ -207,7 +207,7 @@ pub trait PortableHasher {
     /// endian-agnostic way.
     #[inline]
     fn write_i128(&mut self, i: i128) {
-        self.write(&i.to_le_bytes());
+        self.write_short(i.to_le_bytes());
     }
 
     /// Write a signed size to the hasher.
@@ -255,23 +255,37 @@ pub trait PortableHasher {
     /// `&[u8]` byte slices, such as serialized file or image data.
     ///
     /// Origin for this idea: https://github.com/rust-lang/rust/pull/134134#issuecomment-2535503144
-    // TODO(stabilisation): review the addition of write_bytes.
+    ///
+    /// TODO(stabilisation): review the addition of write_bytes.
     #[inline]
     fn write_bytes(&mut self, bytes: &[u8]) {
         self.write_len_prefix(bytes.len());
         self.write(bytes);
     }
+
+    /// Write a fixed-size array of bytes to the hasher.
+    ///
+    /// This method allows for optimizations when writing small fixed-size arrays to the hasher. The
+    /// numeric `write_*` methods call this by default.
+    ///
+    /// Origin for this idea: [`rustc-stable-hash`](https://github.com/rust-lang/rustc-stable-hash/blob/6780c967c1b9b0f5b49c9cc24d1b97ed584ec3ae/src/stable_hasher.rs#L51)
+    ///
+    /// TODO(stabilisation): review the addition of write_short.
+    #[inline]
+    fn write_short<const LEN: usize>(&mut self, bytes: [u8; LEN]) {
+        self.write(bytes.as_slice())
+    }
 }
 
 /// An alternative to [`PortableHasher::finish`] with a hasher-specific output type.
 ///
-/// TODO: should we allow hashers to have multiple output types, or extensible output types?
-pub trait PortableHasherDigest {
+/// TODO(stabilisation): should we allow hashers to have multiple output types, or extensible output types?
+pub trait ExtendedPortableHasher: PortableHasher {
     /// The type of output produced by the hasher.
     type Output;
 
     /// Finalizes the hash computation and returns the hasher-specific output value.
-    // TODO: review the naming and addition of this method.
+    // TODO(stabilisation): review the naming and addition of this method. Should this be finish(), and move the other to finish_u64()?
     fn digest(&self) -> Self::Output;
 }
 
@@ -297,10 +311,10 @@ pub trait BuildPortableHasher {
     }
 
     /// Digest a single object using the hasher, returning the hasher-specific output type.
-    fn digest_one<T>(&self, x: T) -> <Self::PortableHasher as PortableHasherDigest>::Output
+    fn digest_one<T>(&self, x: T) -> <Self::PortableHasher as ExtendedPortableHasher>::Output
     where
         T: PortableHash,
-        Self::PortableHasher: PortableHasherDigest,
+        Self::PortableHasher: ExtendedPortableHasher,
     {
         let mut hasher = self.build_hasher();
         x.portable_hash(&mut hasher);

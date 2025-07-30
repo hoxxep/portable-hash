@@ -69,14 +69,6 @@ impl PortableHash for str {
     }
 }
 
-#[cfg(feature = "nightly")]
-impl PortableHash for ! {
-    #[inline]
-    fn portable_hash<H: PortableHasher>(&self, _: &mut H) {
-        *self
-    }
-}
-
 macro_rules! impl_hash_tuple {
     () => (
 

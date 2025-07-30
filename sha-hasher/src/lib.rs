@@ -1,4 +1,4 @@
-use portable_hash::{DefaultBuildPortableHasher, PortableHasher, PortableHasherDigest};
+use portable_hash::{DefaultBuildPortableHasher, ExtendedPortableHasher, PortableHasher};
 use sha2::Digest;
 
 /// A SHA-256 [`PortableHasher`] implementation.
@@ -23,7 +23,7 @@ impl PortableHasher for Sha256Hasher {
     }
 }
 
-impl PortableHasherDigest for Sha256Hasher {
+impl ExtendedPortableHasher for Sha256Hasher {
     type Output = [u8; 32];
 
     fn digest(&self) -> Self::Output {
@@ -35,7 +35,7 @@ impl PortableHasherDigest for Sha256Hasher {
 
 #[cfg(test)]
 mod tests {
-    use portable_hash::{BuildPortableHasher, PortableHash, PortableHasher, PortableHasherDigest};
+    use portable_hash::{BuildPortableHasher, PortableHash, PortableHasher, ExtendedPortableHasher};
     use super::*;
 
     #[derive(PortableHash)]

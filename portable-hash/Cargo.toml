@@ -14,7 +14,6 @@ authors = ["Liam Gray <gmail@liamg.me>"]
 [features]
 default = ["std"]
 alloc = [] # enable PortableHash implementations of alloc types, String and Vec
-nightly = []  # enable PortableHash implementation on !
 std = ["alloc"]  # enable PortableHash implementations of std library types
 
 [dependencies]
