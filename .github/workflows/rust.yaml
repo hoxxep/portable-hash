@@ -71,7 +71,7 @@ jobs:
       - name: Bodge workspace members for package resolution
         run: |
           set -euo pipefail
-          echo '[workspace] > Cargo.toml
+          echo '[workspace]' > Cargo.toml
           echo 'resolver = "2"' >> Cargo.toml
           echo 'members = ["portable-hash-macros"]' >> Cargo.toml
           cat Cargo.toml
