@@ -30,3 +30,41 @@ jobs:
         uses: Swatinem/rust-cache@v2
       - name: Compile and run tests (no std)
         run: cargo test -p portable-hash --lib --tests --no-default-features --no-fail-fast
+  test-msrv:
+    name: "Tests (MSRV)"
+    runs-on: ubuntu-latest
+    env:
+      RUST_VERSION: 1.83.0
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Rust dependency cache
+        uses: Swatinem/rust-cache@v2
+      - name: Install Rust (rustup, ${{ env.RUST_VERSION }})
+        shell: bash
+        run: |
+          rustup update ${{ env.RUST_VERSION }} --no-self-update
+          rustup default ${{ env.RUST_VERSION }}
+          cargo -V
+          rustc -V
+      - name: Compile and run tests (no std)
+        run: cargo test -p portable-hash --lib --tests --no-default-features --no-fail-fast
+  test-msrv-macros:
+    name: "Tests (MSRV, macro only)"
+    runs-on: ubuntu-latest
+    env:
+      RUST_VERSION: 1.75.0
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Rust dependency cache
+        uses: Swatinem/rust-cache@v2
+      - name: Install Rust (rustup, ${{ env.RUST_VERSION }})
+        shell: bash
+        run: |
+          rustup update ${{ env.RUST_VERSION }} --no-self-update
+          rustup default ${{ env.RUST_VERSION }}
+          cargo -V
+          rustc -V
+      - name: Compile and run tests (no std)
+        run: cargo test -p portable-hash-macros --lib --tests --no-default-features --no-fail-fast

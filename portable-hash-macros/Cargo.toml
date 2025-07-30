@@ -2,7 +2,7 @@
 name = "portable-hash-macros"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.83.0"  # prt.addr() limits us here
+rust-version = "1.83.0"
 repository = "https://github.com/hoxxep/portable-hash"
 description = "Macros for the portable-hash library"
 keywords = ["hash", "hashing", "stable", "portable", "no-std"]

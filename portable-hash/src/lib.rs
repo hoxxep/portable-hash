@@ -74,9 +74,13 @@ pub trait PortableHash {
     }
 }
 
-/// A trait marker that determines if a type's Ord is portablt across platforms.
+/// A trait marker that determines if a type's `Ord` implementation is guaranteed to be portable
+/// across platforms and compiler versions.
 ///
-/// TODO: further document the requirements for types that implement this trait.
+/// This tells `PortableHash` that the type can be used as the key in an ordered collection, such
+/// as a `BTreeMap` or `BTreeSet`, and the hashing order will be consistent across all platforms.
+///
+/// TODO(stabilisation): further document the requirements for types that implement this trait.
 pub trait PortableOrd: Ord {
     /// Denotes whether unstable sorting can be used for this type. Set to true if and
     /// only if `a == b` implies `a` and `b` are fully indistinguishable.

@@ -4,7 +4,7 @@ Note: not ready for production, yet!
 
 Introducing `PortableHash` and `PortableHasher`: a set of traits for portable and stable hashing across different platforms and compiler versions. Stable, portable hashing made easy! This crate does not offer a hasher implementation, but provides the traits and macros to link data types implementing `PortableHash` with hashers implementing `PortableHasher`.
 
-**Sponsored by [Upon](https://uponvault.com)**, inheritance vaults for your digital life – ensuring your family can access your devices, accounts, and assets when the unexpected happens.
+**Sponsored by [Upon](https://uponvault.com?utm_source=github&utm_campaign=portable-hash)**, inheritance vaults for your digital life. Ensure your family can access your devices, accounts, and assets when the unexpected happens.
 
 ## Using PortableHash
 
