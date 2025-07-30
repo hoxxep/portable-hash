@@ -3,6 +3,7 @@ This changelog applies to the `portable-hash` crate. Any changes to the `portabl
 # v0.3.0
 
 - **Breaking:** Fixed unpadded integer slice hashing portability by removing the old transmute approach.
+- **New:** Added the `PortableOrd` marker trait for hashable types. This is used when hashing collections that require stable ordering to hash portably, such as BTrees.
 - **New:** Improved documentation for most types and methods.
 
 # v0.2.0
