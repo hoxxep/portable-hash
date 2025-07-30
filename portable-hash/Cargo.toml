@@ -18,4 +18,4 @@ nightly = []  # enable PortableHash implementation on !
 std = ["alloc"]  # enable PortableHash implementations of std library types
 
 [dependencies]
-portable-hash-macros = { version = "0.1.0" }
+portable-hash-macros = { version = "0.1.1" }
