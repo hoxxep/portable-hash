@@ -68,6 +68,7 @@ jobs:
           rustc -V
       - name: Bodge workspace members for package resolution
         run: |
-          echo "[workspace]\nresolver = "2"\nmembers = [\"portable-hash-macros\"]" > Cargo.toml
+          echo "[workspace]\nresolver = \"2\"\nmembers = [\"portable-hash-macros\"]" > Cargo.toml
+          echo Cargo.toml
       - name: Compile and run tests (no std)
         run: cargo test -p portable-hash-macros --lib --tests --no-default-features --no-fail-fast
