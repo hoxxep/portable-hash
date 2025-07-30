@@ -43,6 +43,7 @@ jobs:
       - name: Install Rust (rustup, ${{ env.RUST_VERSION }})
         shell: bash
         run: |
+          set -euo pipefail
           rustup update ${{ env.RUST_VERSION }} --no-self-update
           rustup default ${{ env.RUST_VERSION }}
           cargo -V
@@ -62,13 +63,15 @@ jobs:
       - name: Install Rust (rustup, ${{ env.RUST_VERSION }})
         shell: bash
         run: |
+          set -euo pipefail
           rustup update ${{ env.RUST_VERSION }} --no-self-update
           rustup default ${{ env.RUST_VERSION }}
           cargo -V
           rustc -V
       - name: Bodge workspace members for package resolution
         run: |
+          set -euo pipefail
           echo "[workspace]\nresolver = \"2\"\nmembers = [\"portable-hash-macros\"]" > Cargo.toml
-          echo Cargo.toml
+          cat Cargo.toml
       - name: Compile and run tests (no std)
         run: cargo test -p portable-hash-macros --lib --tests --no-default-features --no-fail-fast
