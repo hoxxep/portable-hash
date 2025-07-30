@@ -40,7 +40,7 @@ jobs:
         # We test the MSRV for the version before and on every rustversion gate that we have in the
         # codebase to ensure that each version boundary is covered. It's unnecessary to test
         # absolutely all releases! Remember to add new versions if we add more boundaries.
-        rust-version:
+        rust_version:
           - 1.57.0
           - 1.63.0
           - 1.64.0  # CStr and CString stabilised
@@ -49,7 +49,7 @@ jobs:
           - 1.77.0
           - 1.78.0  # Ptr<T> impl using associated generics
     env:
-      RUST_VERSION: ${{ matrix.version }}
+      RUST_VERSION: ${{ matrix.rust_version }}
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
