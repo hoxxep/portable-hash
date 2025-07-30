@@ -3,14 +3,15 @@ use core::{
     // explicitly omitted: any::TypeId,
     cmp::{Ordering, Reverse},
     convert::Infallible,
-    ffi::CStr,
+    // gated to rustc 1.64: ffi::CStr,
     // explicitly omitted: fmt::Error,
     marker::{PhantomData, PhantomPinned},
     // explicitly omitted: mem::{Discriminant},
     mem::{ManuallyDrop},
     num::{
         NonZeroI128, NonZeroI16, NonZeroI32, NonZeroI64, NonZeroI8, NonZeroIsize, NonZeroU128,
-        NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize, Saturating, Wrapping,
+        NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize, /* gated to 1.74 Saturating, */
+        Wrapping,
     },
     ops::{
         Bound, ControlFlow, Deref, Range, RangeFrom, RangeFull, RangeInclusive, RangeTo,
@@ -23,6 +24,13 @@ use core::{
     task::Poll,
     time::Duration,
 };
+
+#[rustversion::since(1.64)]
+use core::ffi::CStr;
+
+#[rustversion::since(1.74)]
+use core::num::Saturating;
+
 use crate::{PortableHash, PortableHasher};
 
 impl<T: PortableHash> PortableHash for Option<T> {
@@ -78,6 +86,7 @@ impl PortableHash for Infallible {
     }
 }
 
+#[rustversion::since(1.64)]
 impl PortableHash for CStr {
     #[inline]
     fn portable_hash<H: PortableHasher>(&self, state: &mut H) {
@@ -128,6 +137,7 @@ impl_non_zero!(NonZeroU64, write_u64);
 impl_non_zero!(NonZeroU128, write_u128);
 impl_non_zero!(NonZeroUsize, write_usize);
 
+#[rustversion::since(1.74)]
 impl<T: PortableHash> PortableHash for Saturating<T> {
     #[inline]
     fn portable_hash<H: PortableHasher>(&self, state: &mut H) {

@@ -3,14 +3,15 @@ use core::{
     // explicitly omitted: any::TypeId,
     cmp::{Ordering, Reverse},
     convert::Infallible,
-    ffi::CStr,
+    // gated to rustc 1.64: ffi::CStr,
     // explicitly omitted: fmt::Error,
     marker::{PhantomData, PhantomPinned},
     // explicitly omitted: mem::{Discriminant},
     mem::{ManuallyDrop},
     num::{
         NonZeroI128, NonZeroI16, NonZeroI32, NonZeroI64, NonZeroI8, NonZeroIsize, NonZeroU128,
-        NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize, Saturating, Wrapping,
+        NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize, /* gated 1.74: Saturating, */
+        Wrapping,
     },
     // explicitly omitted: ops::{
     //     Bound, ControlFlow, Range, RangeFrom, RangeFull, RangeInclusive, RangeTo,
@@ -20,10 +21,17 @@ use core::{
     panic::Location,
     pin::Pin,
     // TODO: ptr::NonNull, (can we safely hash this?)
-    // TODO: sync::atomic, (issues with Ordering stability, gating by available atomics, and what ordering to choose)
+    // explicitly omitted: sync::atomic, (issues with Ordering stability, gating by available atomics, and what ordering to choose)
     task::Poll,
     time::Duration,
 };
+
+#[rustversion::since(1.64)]
+use core::ffi::CStr;
+
+#[rustversion::since(1.74)]
+use core::num::Saturating;
+
 use crate::PortableOrd;
 
 impl<T: PortableOrd> PortableOrd for Option<T> {
@@ -51,6 +59,7 @@ impl PortableOrd for Infallible {
     const I_KNOW_WHAT_I_AM_DOING: () = ();
 }
 
+#[rustversion::since(1.64)]
 impl PortableOrd for CStr {
     const CAN_USE_UNSTABLE_SORT: bool = true;
     const I_KNOW_WHAT_I_AM_DOING: () = ();
@@ -94,6 +103,7 @@ impl_non_zero!(NonZeroU64);
 impl_non_zero!(NonZeroU128);
 impl_non_zero!(NonZeroUsize);
 
+#[rustversion::since(1.74)]
 impl<T: PortableOrd> PortableOrd for Saturating<T> {
     const CAN_USE_UNSTABLE_SORT: bool = T::CAN_USE_UNSTABLE_SORT;
     const I_KNOW_WHAT_I_AM_DOING: () = ();
@@ -109,6 +119,7 @@ impl PortableOrd for Location<'_> {
     const I_KNOW_WHAT_I_AM_DOING: () = ();
 }
 
+#[rustversion::since(1.79)]
 impl<T: PortableOrd + Deref<Target: PortableOrd>> PortableOrd for Pin<T> {
     const CAN_USE_UNSTABLE_SORT: bool = T::CAN_USE_UNSTABLE_SORT;
     const I_KNOW_WHAT_I_AM_DOING: () = ();

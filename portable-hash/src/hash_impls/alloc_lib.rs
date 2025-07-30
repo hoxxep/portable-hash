@@ -3,12 +3,15 @@ use alloc::{
     borrow::{Cow, ToOwned},
     boxed::Box,
     collections::{BTreeMap, BTreeSet, LinkedList, VecDeque},
-    ffi::CString,
+    // gated to rustc 1.64: ffi::CString,
     rc::Rc,
     string::String,
     sync::Arc,
     vec::Vec,
 };
+
+#[rustversion::since(1.64)]
+use alloc::ffi::CString;
 
 use crate::{PortableHash, PortableHasher, PortableOrd};
 
@@ -93,6 +96,7 @@ where
     }
 }
 
+#[rustversion::since(1.64)]
 impl PortableHash for CString {
     #[inline]
     fn portable_hash<H: PortableHasher>(&self, state: &mut H) {

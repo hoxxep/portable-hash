@@ -20,6 +20,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
       - name: Compile and run tests
         run: cargo test --no-fail-fast
+
   test-no-std:
     name: "Tests (no std)"
     runs-on: ubuntu-latest
@@ -30,11 +31,25 @@ jobs:
         uses: Swatinem/rust-cache@v2
       - name: Compile and run tests (no std)
         run: cargo test -p portable-hash --lib --tests --no-default-features --no-fail-fast
+
   test-msrv:
     name: "Tests (MSRV)"
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # We test the MSRV for the version before and on every rustversion gate that we have in the
+        # codebase to ensure that each version boundary is covered. It's unnecessary to test
+        # absolutely all releases! Remember to add new versions if we add more boundaries.
+        rust-version:
+          - 1.57.0
+          - 1.63.0
+          - 1.64.0  # CStr and CString stabilised
+          - 1.73.0
+          - 1.74.0  # Saturating stabilised
+          - 1.77.0
+          - 1.78.0  # Ptr<T> impl using associated generics
     env:
-      RUST_VERSION: 1.83.0
+      RUST_VERSION: ${{ matrix.version }}
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -50,6 +65,7 @@ jobs:
           rustc -V
       - name: Compile and run tests (no std)
         run: cargo test -p portable-hash --lib --tests --no-default-features --no-fail-fast
+
   test-msrv-macros:
     name: "Tests (MSRV, macro only)"
     runs-on: ubuntu-latest

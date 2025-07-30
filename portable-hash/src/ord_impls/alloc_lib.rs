@@ -3,12 +3,15 @@ use alloc::{
     borrow::{Cow, ToOwned},
     boxed::Box,
     collections::{BTreeMap, BTreeSet, LinkedList, VecDeque},
-    ffi::CString,
+    // gated to rustc 1.64: ffi::CString,
     rc::Rc,
     string::String,
     sync::Arc,
     vec::Vec,
 };
+
+#[rustversion::since(1.64)]
+use alloc::ffi::CString;
 
 use crate::PortableOrd;
 
@@ -59,6 +62,7 @@ impl<T: PortableOrd> PortableOrd for VecDeque<T> {
     const I_KNOW_WHAT_I_AM_DOING: () = ();
 }
 
+#[rustversion::since(1.64)]
 impl PortableOrd for CString {
     const CAN_USE_UNSTABLE_SORT: bool = true;
     const I_KNOW_WHAT_I_AM_DOING: () = ();

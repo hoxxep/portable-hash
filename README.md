@@ -6,16 +6,16 @@ Introducing `PortableHash` and `PortableHasher`: a set of traits for portable an
 
 **Sponsored by [Upon](https://uponvault.com?utm_source=github&utm_campaign=portable-hash)**, inheritance vaults for your digital life. Ensure your family can access your devices, accounts, and assets when the unexpected happens.
 
-## Using PortableHash
+## Using `PortableHash` in libs and apps
 
-To use `PortableHash`, simply derive or implement it on your types, and choose a `PortableHasher` implementation that suits your needs.
+To use `PortableHash`, simply `#[derive(PortableHash)]` or implement it manually on your types, and choose a `PortableHasher` implementation that suits your needs.
 
 By implementing `PortableHash` on library types, **you promise to guarantee** that the type hashing logic is stable across:
 - **All platforms.** Avoid hashing non-portable types such as `OsString`, `OsStr`, or `Path` have platform-specific encodings and representations.
 - **All rust compiler versions.** Avoid mixing `std::hash::Hash` or other non-stable hashing traits to produce a `PortableHash` output.
 - **All minor versions of your crate.** Fields in your types may be reordered, added, or changed, but the `PortableHash::portable_hash` must always hash the same fields in the same order for all crate minor versions.
   - Any breaking changes to the hash output of any type should require a major version bump of your crate, and documentation of the breaking change in your changelog.
-  - Be careful with `derive(PortableHash)`. Changing the order of fields in structs or enums will change the hash output. We recommend writing unit tests that hash each of your types against hardcoded hash outputs to check for stability. Fields can be _renamed_ safely, but cannot be re-ordered. Please implement `PortableHash` manually to maintain stability if you need to change the order of fields.
+  - Be careful with `#[derive(PortableHash)]`. Changing the order of fields in structs or enums will change the hash output. We recommend writing unit tests that hash each of your types against hardcoded hash outputs to check for stability. Fields can be _renamed_ safely, but cannot be re-ordered or change type. Please implement `PortableHash` manually to maintain stability if you need to change the order of fields.
 
 <details>
 <summary><strong>Examples of hashable, but not portable types.</strong></summary>
@@ -50,7 +50,7 @@ Hashers that implement `PortableHasher`:
 - [rapidhash](https://crates.io/crates/rapidhash) (under development): A fast, non-cryptographic, portable, minimally DoS resistant hasher.
 - TBC: sha, blake, siphash, seahash etc. hashers.
 
-## Implementing PortableHasher for Hash Library Authors
+## Implementing `PortableHasher` for hash library authors
 
 Implementing `PortableHasher` is very similar to implementing the standard library `Hasher` trait, with some additional requirements.
 
@@ -90,25 +90,26 @@ This is so fraught with accidental footguns, `PortableHash` and `PortableHasher`
 ## Is portable-hash ready for production?
 Do not use this crate in production yet as it's still under development. Please wait for the 1.0 release to stabilise the API and hash output. The `PortableHash` and `PortableHasher` traits deviate from the standard library in various ways that still need to be reviewed and documented, and are subject to change. Subscribe to notifications on the [stabilisation issue](https://github.com/hoxxep/portable-hash/issues/1) to be notified of the 1.0 release. Issues and contributions are very welcome.
 
-## TODO before Stabilisation
+## TODO before stabilisation
 - [x] Basic `PortableHash` and `PortableHasher` traits.
 - [x] Implement `PortableHash` on many primitive and standard library types.
 - [ ] Documentation for the APIs.
 - [ ] Documentation for how to implement portable hashing correctly.
+- [ ] Should the `PortableHasher` trait methods be renamed? Is there a risk of accidentally calling the wrong implementation of `write` if `Hasher` and `PortableHasher` are implemented at the same time? Should be a "no" when implementing `PortableHash::hash`.
 - [x] Create a `derive(PortableHash)` macro.
 - [ ] Review the `derive(PortableHash)` macro to produce stable enum hashing. Re-ordering currently changes the hash output, while renaming is safe.
-- [ ] Create a `PortableOrd` marker trait for collections that require stable ordering to hash portably, such as BTrees.
-- [ ] Compare to [anyhash](https://crates.io/crates/anyhash). It does not promise stability or hash types in a DoS-resistant way. But do we want to follow the same `HasherWrite` pattern?
+- [x] Create a `PortableOrd` marker trait for collections that require stable ordering to hash portably, such as BTrees.
+- [x] Compare to [anyhash](https://crates.io/crates/anyhash). It does not promise stability or hash types in a DoS-resistant way, but will follow the `HasherWrite` and rustc's `ExtendedHasher` trait idea for custom hasher outputs.
 - [x] Match the ordering of the `Hasher` trait methods.
 - [x] Decide on, and/or fully implement, `write_bytes`.
-- [ ] Decide on removing `write_usize` and `write_isize` methods, as these types are not portable by default, unless we force them to always be `write_u64`?
+- [x] ~Decide on removing `write_usize` and `write_isize` methods.~ These types are not portable by default, we will expect them to always be `write_u64`, but it seems more flexible to leave that decision to the `PortableHasher` implementation.
 - [ ] Decide on digest/hasher-specific output types.
   - [ ] Should the default `finish` instead offer a custom Output type?
   - [ ] Use a better name for custom outputs than "digest".
   - [ ] Should cryptographic hashes implement `PortableHasher`? Is the `sha-hasher` a reasonable thing to publish?
-- [ ] Decide on `!` implementation, or remove the nightly feature.
+- [x] Decide on `!` implementation. Remove the nightly feature, `!` can be implemented if required by a user.
 - [x] Decide on ptr implementations, or remove hashing pointers. Removed as non portable.
-- [ ] Decide on `write_len_prefix` name change (differs from `write_length_prefix` in the std library).
+- [x] Decide on `write_len_prefix` name change (differs from `write_length_prefix` in the std library). Stick with `write_len_prefix` as the FCP might change it, we can also deprecate it later if necessary.
 - [ ] Decide on `write_str` default implementation change to use a length prefix.
 - [ ] Decide on renaming `BuildPortableHasher` to `PortableBuildHasher`?
 - [ ] Decide on `std` being a default feature or not.

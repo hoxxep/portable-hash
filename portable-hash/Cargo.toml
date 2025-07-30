@@ -2,7 +2,7 @@
 name = "portable-hash"
 version = "0.3.0"
 edition = "2021"
-rust-version = "1.83.0"  # prt.addr() limits us here
+#rust-version = "1.83.0"  # prt.addr() limits us here
 repository = "https://github.com/hoxxep/portable-hash"
 description = "Portable, stable hashing traits for Rust."
 keywords = ["hash", "hashing", "stable", "portable", "no-std"]
@@ -19,3 +19,4 @@ std = ["alloc"]  # enable PortableHash implementations of std library types
 
 [dependencies]
 portable-hash-macros = { version = "0.1.1" }
+rustversion = "1.0.21"
