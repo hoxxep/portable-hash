@@ -3,5 +3,6 @@ resolver = "2"
 members = [
     "portable-hash",
     "portable-hash-macros",
+    "portable-hash-tester",
     "sha-hasher",
 ]

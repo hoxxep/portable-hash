@@ -5,8 +5,8 @@
 //! will never change to length-first sorting for example.
 
 #[cfg(feature = "alloc")]
-mod alloc_lib;
-mod core_lib;
-mod primitives;
+mod ord_alloc;
+mod ord_core;
+mod ord_primitives;
 #[cfg(feature = "std")]
-mod std_lib;
+mod ord_std;

@@ -2,6 +2,7 @@
 name = "sha-hasher"
 version = "0.1.0"
 edition = "2021"
+rust-version = "1.57.0"
 repository = "https://github.com/hoxxep/portable-hash"
 description = "A SHA-256 hasher using portable-hash traits"
 keywords = ["hash", "hashing", "stable", "portable", "no-std"]
@@ -11,9 +12,14 @@ license = "MIT OR Apache-2.0"
 authors = ["Liam Gray <gmail@liamg.me>"]
 publish = false
 
+[features]
+default = []
+alloc = ["portable-hash-tester/alloc"]  # enable PortableHash implementations of alloc types, String and Vec
+std = ["portable-hash-tester/std"]  # enable std library for testing std types
+
 [dependencies]
 portable-hash = { path = "../portable-hash", default-features = false }
-sha2 = "0.10.9"
+sha2 = "0.10"
 
 [dev-dependencies]
-portable-hash = { path = "../portable-hash", features = ["std"] }
+portable-hash-tester = { path = "../portable-hash-tester", default-features = false }

@@ -3,6 +3,7 @@
 
 #![warn(missing_docs)]
 #![deny(unused_must_use)]
+#![deny(unsafe_code)]
 
 mod hash_impls;
 mod ord_impls;

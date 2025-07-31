@@ -1,8 +1,8 @@
 //! Implementations of `PortableHash` for common types.
 
 #[cfg(feature = "alloc")]
-mod alloc_lib;
-mod core_lib;
-mod primitives;
+mod hash_alloc;
+mod hash_core;
+mod hash_primitives;
 #[cfg(feature = "std")]
-mod std_lib;
+mod hash_std;

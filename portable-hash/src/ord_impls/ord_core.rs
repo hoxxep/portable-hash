@@ -18,7 +18,7 @@ use core::{
     //     RangeToInclusive,
     // },
     ops::Deref,
-    panic::Location,
+    // explicitly omitted: panic::Location,
     pin::Pin,
     // TODO: ptr::NonNull, (can we safely hash this?)
     // explicitly omitted: sync::atomic, (issues with Ordering stability, gating by available atomics, and what ordering to choose)
@@ -111,11 +111,6 @@ impl<T: PortableOrd> PortableOrd for Saturating<T> {
 
 impl<T: PortableOrd> PortableOrd for Wrapping<T> {
     const CAN_USE_UNSTABLE_SORT: bool = T::CAN_USE_UNSTABLE_SORT;
-    const I_KNOW_WHAT_I_AM_DOING: () = ();
-}
-
-impl PortableOrd for Location<'_> {
-    const CAN_USE_UNSTABLE_SORT: bool = true;
     const I_KNOW_WHAT_I_AM_DOING: () = ();
 }
 

@@ -2,8 +2,6 @@ use portable_hash::{DefaultBuildPortableHasher, ExtendedPortableHasher, Portable
 use sha2::Digest;
 
 /// A SHA-256 [`PortableHasher`] implementation.
-///
-/// TODO: key the hasher for DoS resistance?
 #[derive(Default, Clone)]
 pub struct Sha256Hasher {
     hasher: sha2::Sha256,
@@ -32,77 +30,29 @@ impl ExtendedPortableHasher for Sha256Hasher {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
-    use portable_hash::{BuildPortableHasher, PortableHash, PortableHasher, ExtendedPortableHasher};
+    use portable_hash::{PortableHasher};
     use super::*;
 
-    #[derive(PortableHash)]
-    struct TestObject {
-        a: u32,
-        b: String,
-        c: Vec<u64>,
-        d: (u8, u16, u32),
+    /// Test against the portable hasher fixture framework.
+    #[test]
+    fn test_portable_hasher() {
+        portable_hash_tester::test_portable_hasher(Sha256BuildHasher::default(), "tests/fixtures.csv");
     }
 
+    /// Confirm the sha.update() method is bytewise compatible with subsequent calls.
     #[test]
-    fn struct_derive() {
-        let object = TestObject {
-            a: 42,
-            b: "Hello, World!".to_string(),
-            c: vec![1, 2, 3, 4, 5],
-            d: (8, 16, 32),
-        };
+    fn test_sha_understanding() {
+        let mut hasher = Sha256Hasher::default();
+        hasher.write_u8(1);
+        hasher.write_u8(0);
+        let hash1 = hasher.finish();
 
         let mut hasher = Sha256Hasher::default();
-        object.portable_hash(&mut hasher);
-        assert_eq!(hasher.finish(), 15114829174459170361);
-        assert_eq!(hasher.digest(), [57, 126, 89, 104, 13, 169, 194, 209, 154, 89, 137, 46, 240, 254, 41, 255, 110, 158, 34, 166, 227, 201, 55, 51, 118, 163, 31, 35, 208, 245, 158, 175]);
-    }
+        hasher.write_u16(1);
+        let hash2 = hasher.finish();
 
-    #[derive(PortableHash)]
-    enum TestEnum {
-        UnNamedA(u32),
-        UnNamedB(u32),
-        NamedA {
-            a: u8,
-            b: u16,
-        },
-        NamedB {
-            a: u32,
-            b: u16,
-        },
-        UnitA,
-        UnitB,
-    }
-
-    #[test]
-    fn enum_derive() {
-        let hasher = Sha256BuildHasher::default();
-
-        let unnamed_a = TestEnum::UnNamedA(42);
-        assert_eq!(hasher.hash_one(&unnamed_a), 648569055011963888);
-
-        let unnamed_b = TestEnum::UnNamedB(42);
-        assert_eq!(hasher.hash_one(&unnamed_b), 7833144868699154772);
-
-        let named_a = TestEnum::NamedA {
-            a: 8,
-            b: 16,
-        };
-        assert_eq!(hasher.hash_one(&named_a), 17990340046588545446);
-
-        let named_b = TestEnum::NamedB {
-            a: 8,
-            b: 16,
-        };
-        assert_eq!(hasher.hash_one(&named_b), 11634397432774414619);
-
-        let unit_a = TestEnum::UnitA;
-        assert_eq!(hasher.hash_one(&unit_a), 5126029364455812581);
-
-        let unit_b = TestEnum::UnitB;
-        assert_eq!(hasher.hash_one(&unit_b), 940095539697581031);
+        assert_eq!(hash1, hash2);
     }
 }

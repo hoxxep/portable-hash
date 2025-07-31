@@ -79,17 +79,22 @@ impl_hash_tuple! { (T TO) (B BO) (C CO) (D DO) (E EO) (F FO) (G GO) (H HO) (I IO
 impl_hash_tuple! { (T TO) (B BO) (C CO) (D DO) (E EO) (F FO) (G GO) (H HO) (I IO) (J JO) (K KO) }
 impl_hash_tuple! { (T TO) (B BO) (C CO) (D DO) (E EO) (F FO) (G GO) (H HO) (I IO) (J JO) (K KO) (L LO) }
 
+impl<T: PortableOrd> PortableOrd for [T] {
+    const CAN_USE_UNSTABLE_SORT: bool = T::CAN_USE_UNSTABLE_SORT;
+    const I_KNOW_WHAT_I_AM_DOING: () = ();
+}
+
+impl<T: PortableOrd, const LEN: usize> PortableOrd for [T; LEN] {
+    const CAN_USE_UNSTABLE_SORT: bool = T::CAN_USE_UNSTABLE_SORT;
+    const I_KNOW_WHAT_I_AM_DOING: () = ();
+}
+
 impl<T: PortableOrd> PortableOrd for &T {
     const CAN_USE_UNSTABLE_SORT: bool = T::CAN_USE_UNSTABLE_SORT;
     const I_KNOW_WHAT_I_AM_DOING: () = ();
 }
 
 impl<T: PortableOrd> PortableOrd for &mut T {
-    const CAN_USE_UNSTABLE_SORT: bool = T::CAN_USE_UNSTABLE_SORT;
-    const I_KNOW_WHAT_I_AM_DOING: () = ();
-}
-
-impl<T: PortableOrd> PortableOrd for [T] {
     const CAN_USE_UNSTABLE_SORT: bool = T::CAN_USE_UNSTABLE_SORT;
     const I_KNOW_WHAT_I_AM_DOING: () = ();
 }

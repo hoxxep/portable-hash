@@ -5,6 +5,8 @@ This changelog applies to the `portable-hash` crate. Any changes to the `portabl
 - **Breaking:** Change default `write_str` behaviour to use a `write_u8(0xFF)` suffix instead of a length prefix [to match std](https://github.com/rust-lang/rust/pull/134134).
 - **Breaking:** Removed the `PortableHash` implementation for `!`.
 - **New:** Added `write_short(bytes: [u8; LEN])` to `PortableHasher` for hashing short fixed-length byte arrays.
+- **New:** Added `PortableHash` and `PortableOrd` implementations for `[T; LEN]` arrays.
+- **New:** Added the `portable-hash-tester` crate for testing both `PortableHasher` implementations and `PortableHash` types for consistency.
 - Reduced MSRV to 1.57, and used `rustversion` to gate certain `PortableHash` implementations based on compiler version.
 
 # v0.3.0

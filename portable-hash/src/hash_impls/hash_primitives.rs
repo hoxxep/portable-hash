@@ -131,6 +131,13 @@ impl<T: PortableHash> PortableHash for [T] {
     }
 }
 
+impl<T: PortableHash, const LEN: usize> PortableHash for [T; LEN] {
+    #[inline]
+    fn portable_hash<H: PortableHasher>(&self, state: &mut H) {
+        PortableHash::portable_hash_slice(self.as_slice(), state)
+    }
+}
+
 impl<T: ?Sized + PortableHash> PortableHash for &T {
     #[inline]
     fn portable_hash<H: PortableHasher>(&self, state: &mut H) {
