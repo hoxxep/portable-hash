@@ -11,16 +11,36 @@ Introducing `PortableHash` and `PortableHasher`: a set of traits for portable an
 To use `PortableHash`, simply `#[derive(PortableHash)]` or implement it manually on your types, and choose a `PortableHasher` implementation that suits your needs.
 
 By implementing `PortableHash` on library types, **you promise to guarantee** that the type hashing logic is stable across:
-- **All platforms.** Avoid hashing non-portable types such as `OsString`, `OsStr`, or `Path` have platform-specific encodings and representations.
-- **All rust compiler versions.** Avoid mixing `std::hash::Hash` or other non-stable hashing traits to produce a `PortableHash` output.
-- **All minor versions of your crate.** Fields in your types may be reordered, added, or changed, but the `PortableHash::portable_hash` must always hash the same fields in the same order for all crate minor versions.
-  - Any breaking changes to the hash output of any type should require a major version bump of your crate, and documentation of the breaking change in your changelog.
-  - Be careful with `#[derive(PortableHash)]`. Changing the order of fields in structs or enums will change the hash output. We recommend writing unit tests that hash each of your types against hardcoded hash outputs to check for stability. Fields can be _renamed_ safely, but cannot be re-ordered or change type. Please implement `PortableHash` manually to maintain stability if you need to change the order of fields.
+
+<details>
+<summary><strong>All platforms.</strong></summary>
+
+Avoid hashing non-portable types such as `OsString`, `OsStr`, or `Path` have platform-specific encodings and representations.
 
 <details>
 <summary><strong>Examples of hashable, but not portable types.</strong></summary>
 
 `OsString`, `OsStr`, and `Path` are examples of types that vary between platforms. The string encodings of these types can differ based on the operating system, making them unsuitable for portable hashing. They can safely derive `std::hash::Hash` for in-memory hashmaps, but `PortableHash` is explicitly _not_ implemented on these types.
+
+</details>
+
+</details>
+
+<details>
+<summary><strong>All rust compiler versions.</strong></summary>
+
+Avoid mixing `std::hash::Hash` or other non-stable hashing traits to produce a `PortableHash` output.
+
+</details>
+
+<details>
+<summary><strong>All minor versions of your crate.</strong></summary>
+
+Fields in your types may be reordered, added, or changed, but the `PortableHash::portable_hash` must always hash the same fields in the same order for all crate minor versions.
+
+Any breaking changes to the hash output of any type should require a major version bump of your crate, and documentation of the breaking change in your changelog.
+
+Be careful with `#[derive(PortableHash)]`. Changing the order of fields in structs or enums will change the hash output. We recommend writing unit tests that hash each of your types against hardcoded hash outputs to check for stability. Fields can be _renamed_ safely, but cannot be re-ordered or change type. Please implement `PortableHash` manually to maintain stability if you need to change the order of fields.
 
 </details>
 
@@ -58,6 +78,36 @@ Your crate must provide the following guarantees when implementing `PortableHash
 - The hash output must be stable across all minor versions of your crate.
 - Integer types are hashed consistently across all platforms, explicitly choosing little-endian or big-endian encoding.
 - Use `default-features = false` when adding `portable-hash` as a dependency, so end users can opt to disable the `std` feature.
+
+## Testing `PortableHash` and `PortableHasher` implementations
+
+The `portable-hash-tester` crate provides an out of the box test harness and set of fixtures to ensure your types and hashers have stable hash outputs. Set up a simple test and commit the generated `fixtures.csv` file from a local run, then run your test in CI across all of your target platforms to guarantee stable hash outputs.
+
+```rust
+use portable_hash_tester::{test_default_fixtures, test_fixture, FixtureDB};
+
+#[derive(PortableHash, Debug)]
+struct MyType {
+    a: u32,
+}
+
+/// Test your custom `PortableHasher` implementation and `PortableHash` types are
+/// stable and portable between platforms, compiler, and crate versions.
+#[test]
+fn test_my_hasher() {
+    // Load the fixture database from a file in your git repository.
+    let mut fixtures = FixtureDB::load(CustomHasher::default(), "path/to/fixtures.csv");
+
+    // Run over thousands of default test suite fixtures
+    test_default_fixtures(&mut fixtures);
+
+    // Test your own PortableHash types
+    fixtures.test_fixture("test_name", MyType { a: 42 });
+
+    // Log the summary stats and check all tests passed.
+    fixtures.finish();
+}
+```
 
 ## What's wrong with the `std::hash` traits?
 The standard library `Hash` and `Hasher` traits are not suitable for portable hashing across different platforms and versions of Rust. The hashing of primitive types, standard library types, implementation of `derive(Hash)`, and the default behaviour of `Hasher` methods may all change between platforms and compiler versions. This crate is intended to provide an equally easy to use alternative that is truly stable and portable across platforms and versions of Rust.

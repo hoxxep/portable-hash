@@ -44,6 +44,8 @@ jobs:
           - 1.74.0  # Saturating stabilised
           - 1.77.0
           - 1.78.0  # Ptr<T> impl using associated generics
+          - stable
+          - nightly
         host:
           - ubuntu-latest
           # - windows-latest
@@ -82,6 +84,8 @@ jobs:
           - 1.74.0  # Saturating stabilised
           - 1.77.0
           - 1.78.0  # Ptr<T> impl using associated generics
+          - stable
+          - nightly
     env:
       RUST_VERSION: ${{ matrix.rust_version }}
     steps:
