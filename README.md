@@ -95,16 +95,16 @@ struct MyType {
 /// stable and portable between platforms, compiler, and crate versions.
 #[test]
 fn test_my_hasher() {
-    // Load the fixture database from a file in your git repository.
+    // Load/store the expected hash outputs from a file in your git repository.
     let mut fixtures = FixtureDB::load(CustomHasher::default(), "path/to/fixtures.csv");
 
-    // Run over thousands of default test suite fixtures
+    // Run thousands of test suite fixtures on standard types.
     test_default_fixtures(&mut fixtures);
 
-    // Test your own PortableHash types
+    // Test your own PortableHash types.
     fixtures.test_fixture("test_name", MyType { a: 42 });
 
-    // Log the summary stats and check all tests passed.
+    // Log the summary stats and error if any hash outputs changed.
     fixtures.finish();
 }
 ```

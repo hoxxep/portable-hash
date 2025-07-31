@@ -63,24 +63,24 @@ pub fn test_default_fixtures(fixtures: &mut FixtureDB<impl BuildPortableHasher>)
 /// ```ignore
 /// use portable_hash_tester::{test_default_fixtures, test_fixture, FixtureDB};
 ///
-/// /// Test your custom `PortableHasher` implementation or custom `PortableHash` types are
+/// /// Test your custom `PortableHasher` implementation and `PortableHash` types are
 /// /// stable and portable between platforms, compiler, and crate versions.
 /// #[test]
 /// fn test_my_hasher() {
-///     // Load the fixture database from a file in your git repository.
+///     // Load/store the expected hash outputs from a file in your git repository.
 ///     // NOTE: the hasher must use a constant seed for the tests to be stable.
 ///     let mut fixtures = FixtureDB::load(CustomHasher::default(), "path/to/fixtures.csv");
 ///
-///     // Run the default fixtures and a custom fixture
+///     // Run thousands of test suite fixtures on standard types.
 ///     test_default_fixtures(&mut fixtures);
 ///
-///     // Or test your own PortableHash types this way
+///     // Test your own PortableHash types.
 ///     fixtures.test_fixture("test_name", "your custom object to be hashed");
 ///
-///     // And test your own PortableHash types without the `Debug` trait, if necessary.
+///     // Test your own PortableHash types that don't implement Debug.
 ///     fixtures.test_fixture_no_debug("test_other", "your custom object to be hashed");
 ///
-///     // Log the summary stats and check all tests passed.
+///     // Log the summary stats and error if any hash outputs changed.
 ///     fixtures.finish();
 /// }
 /// ```

@@ -386,6 +386,7 @@ struct SplitGenerics<
 fn split_generics(
     generics: &Generics,
 ) -> SplitGenerics<
+    '_,
     impl Iterator<Item = &LifetimeParam>,
     impl Iterator<Item = &Lifetime>,
     impl Iterator<Item = &TypeParam>,
@@ -445,41 +446,41 @@ fn split_generics(
 //         })
 //     }
 // }
-
-struct GenericArguments {
-    lt_token: Token![<],
-    args: Punctuated<GenericArgument, Token![,]>,
-    rt_token: Token![>],
-}
-
-impl Parse for GenericArguments {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        let lt_token = <Token![<]>::parse(input)?;
-
-        let mut args = Punctuated::new();
-        while let Ok(arg) = GenericArgument::parse(input) {
-            args.push(arg);
-            if let Ok(comma) = <Token![,]>::parse(input) {
-                args.push_punct(comma);
-            } else {
-                break;
-            }
-        }
-
-        let rt_token = <Token![>]>::parse(input)?;
-
-        Ok(Self {
-            lt_token,
-            args,
-            rt_token,
-        })
-    }
-}
-
-impl ToTokens for GenericArguments {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.lt_token.to_tokens(tokens);
-        self.args.to_tokens(tokens);
-        self.rt_token.to_tokens(tokens);
-    }
-}
+//
+// struct GenericArguments {
+//     lt_token: Token![<],
+//     args: Punctuated<GenericArgument, Token![,]>,
+//     rt_token: Token![>],
+// }
+//
+// impl Parse for GenericArguments {
+//     fn parse(input: ParseStream) -> syn::Result<Self> {
+//         let lt_token = <Token![<]>::parse(input)?;
+//
+//         let mut args = Punctuated::new();
+//         while let Ok(arg) = GenericArgument::parse(input) {
+//             args.push(arg);
+//             if let Ok(comma) = <Token![,]>::parse(input) {
+//                 args.push_punct(comma);
+//             } else {
+//                 break;
+//             }
+//         }
+//
+//         let rt_token = <Token![>]>::parse(input)?;
+//
+//         Ok(Self {
+//             lt_token,
+//             args,
+//             rt_token,
+//         })
+//     }
+// }
+//
+// impl ToTokens for GenericArguments {
+//     fn to_tokens(&self, tokens: &mut TokenStream) {
+//         self.lt_token.to_tokens(tokens);
+//         self.args.to_tokens(tokens);
+//         self.rt_token.to_tokens(tokens);
+//     }
+// }

@@ -37,11 +37,11 @@ macro_rules! impl_hash_tuple {
         }
     );
 
-    ( $(($name:ident $other:ident))+) => (
+    ( $($name:ident)+) => (
         maybe_tuple_doc! {
             $($name)+ @
 
-            impl<$($name: PortableOrd),+> PortableOrd for ($($name,)+) where last_type!($($name,)+): ?Sized {
+            impl<$($name: PortableOrd),+> PortableOrd for ($($name,)+) {
                 const CAN_USE_UNSTABLE_SORT: bool = $( $name::CAN_USE_UNSTABLE_SORT && )+ true;
                 const I_KNOW_WHAT_I_AM_DOING: () = ();
             }
@@ -60,24 +60,19 @@ macro_rules! maybe_tuple_doc {
     };
 }
 
-macro_rules! last_type {
-    ($a:ident,) => { $a };
-    ($a:ident, $($rest_a:ident,)+) => { last_type!($($rest_a,)+) };
-}
-
 impl_hash_tuple! {}
-impl_hash_tuple! { (T TO) }
-impl_hash_tuple! { (T TO) (B BO) }
-impl_hash_tuple! { (T TO) (B BO) (C CO) }
-impl_hash_tuple! { (T TO) (B BO) (C CO) (D DO) }
-impl_hash_tuple! { (T TO) (B BO) (C CO) (D DO) (E EO) }
-impl_hash_tuple! { (T TO) (B BO) (C CO) (D DO) (E EO) (F FO) }
-impl_hash_tuple! { (T TO) (B BO) (C CO) (D DO) (E EO) (F FO) (G GO) }
-impl_hash_tuple! { (T TO) (B BO) (C CO) (D DO) (E EO) (F FO) (G GO) (H HO) }
-impl_hash_tuple! { (T TO) (B BO) (C CO) (D DO) (E EO) (F FO) (G GO) (H HO) (I IO) }
-impl_hash_tuple! { (T TO) (B BO) (C CO) (D DO) (E EO) (F FO) (G GO) (H HO) (I IO) (J JO) }
-impl_hash_tuple! { (T TO) (B BO) (C CO) (D DO) (E EO) (F FO) (G GO) (H HO) (I IO) (J JO) (K KO) }
-impl_hash_tuple! { (T TO) (B BO) (C CO) (D DO) (E EO) (F FO) (G GO) (H HO) (I IO) (J JO) (K KO) (L LO) }
+impl_hash_tuple! { T }
+impl_hash_tuple! { T B }
+impl_hash_tuple! { T B C }
+impl_hash_tuple! { T B C D }
+impl_hash_tuple! { T B C D E }
+impl_hash_tuple! { T B C D E F }
+impl_hash_tuple! { T B C D E F G }
+impl_hash_tuple! { T B C D E F G H }
+impl_hash_tuple! { T B C D E F G H I }
+impl_hash_tuple! { T B C D E F G H I J }
+impl_hash_tuple! { T B C D E F G H I J K }
+impl_hash_tuple! { T B C D E F G H I J K L }
 
 impl<T: PortableOrd> PortableOrd for [T] {
     const CAN_USE_UNSTABLE_SORT: bool = T::CAN_USE_UNSTABLE_SORT;
