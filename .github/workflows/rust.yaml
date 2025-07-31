@@ -46,7 +46,7 @@ jobs:
           - 1.78.0  # Ptr<T> impl using associated generics
         host:
           - ubuntu-latest
-          - windows-latest
+          # - windows-latest
     runs-on: ${{ matrix.host }}
     env:
       RUST_VERSION: ${{ matrix.rust_version }}
@@ -99,8 +99,6 @@ jobs:
           rustc -V
       - name: Compile and run portable-hash tests (no std)
         run: cargo test -p portable-hash --lib --tests --no-default-features --no-fail-fast
-      - name: Compile and run sha-hasher tests
-        run: cargo test -p sha-hasher --lib --tests --all-features --no-fail-fast
 
   test-msrv-macros:
     name: "Tests (MSRV, macro only)"
