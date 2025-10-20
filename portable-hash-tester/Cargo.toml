@@ -12,5 +12,5 @@ std = ["alloc", "portable-hash/std"]  # enable std library for testing std types
 [dependencies]
 portable-hash = { path = "../portable-hash", default-features = false }
 rustversion = "1.0"
-csv = "=1.2"  # fixed to 1.1 for older MSRV compatibility
+csv = "=1.4"  # fixed to 1.1 for older MSRV compatibility
 hex = "0.4"
