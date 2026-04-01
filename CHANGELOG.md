@@ -2,11 +2,16 @@ This changelog applies to the `portable-hash` crate. Any changes to the `portabl
 
 # v0.4.0
 
+- **Breaking:** Removed `PortableHash` and `PortableOrd` implementations for `Instant` and `SystemTime`. `Instant::elapsed()` and `SystemTime::elapsed()` are non-deterministic, violating the fundamental hashing invariant. These types are also not portable across machines.
+- **Breaking:** Added discriminant bytes to `PortableHash` for `IpAddr` and `SocketAddr` enums, matching std's `#[derive(Hash)]` behaviour.
+- **Breaking:** Removed unnecessary discriminant bytes from range types (`Range`, `RangeFrom`, `RangeFull`, `RangeInclusive`, `RangeTo`, `RangeToInclusive`). These are independent types, not enum variants.
+- **Breaking:** Changed `CStr` hashing to use `to_bytes()` (without nul terminator) to match std's `Hash for CStr`.
 - **Breaking:** Change default `write_str` behaviour to use a `write_u8(0xFF)` suffix instead of a length prefix [to match std](https://github.com/rust-lang/rust/pull/134134).
 - **Breaking:** Removed the `PortableHash` implementation for `!`.
 - **New:** Added `write_short(bytes: [u8; LEN])` to `PortableHasher` for hashing short fixed-length byte arrays.
 - **New:** Added `PortableHash` and `PortableOrd` implementations for `[T; LEN]` arrays.
 - **New:** Added the `portable-hash-tester` crate for testing both `PortableHasher` implementations and `PortableHash` types for consistency.
+- Relaxed `PhantomData<T>` to no longer require `T: PortableHash`.
 - Reduced MSRV to 1.57, and used `rustversion` to gate certain `PortableHash` implementations based on compiler version.
 
 # v0.3.0

@@ -314,7 +314,7 @@ fn save_fixture_file(path: impl AsRef<Path>, fixtures: &HashMap<String, Fixture>
 
     // rename the old file to .old as a backup
     if path.exists() {
-        let backup_path = path.with_extension(".csv.old");
+        let backup_path = path.with_extension("csv.old");
         if backup_path.exists() {
             std::fs::remove_file(&backup_path).expect("Failed to remove old fixture file");
         }

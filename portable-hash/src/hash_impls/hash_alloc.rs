@@ -17,7 +17,7 @@ use crate::{PortableHash, PortableHasher, PortableOrd};
 
 impl<T: ToOwned + PortableHash> PortableHash for Cow<'_, T> {
     fn portable_hash<H: PortableHasher>(&self, state: &mut H) {
-        (&self).portable_hash(state);
+        (**self).portable_hash(state);
     }
 }
 

@@ -10,7 +10,7 @@ impl PortableHash for u8 {
         state.write_u8(*self)
     }
 
-    /// Override hash_slice to avoid writing a length prefix for bytes.
+    /// Override hash_slice to write bytes as a contiguous blob via write_bytes.
     #[inline]
     fn portable_hash_slice<H: PortableHasher>(data: &[u8], state: &mut H) {
         state.write_bytes(data)

@@ -3,6 +3,13 @@ name = "portable-hash-tester"
 description = "Test PortableHash implementations for stability between changes and versions."
 version = "0.1.0"
 edition = "2021"
+rust-version = "1.57.0"
+repository = "https://github.com/hoxxep/portable-hash"
+keywords = ["hash", "hashing", "stable", "portable", "testing"]
+categories = ["algorithms", "development-tools::testing"]
+readme = "README.md"
+license = "MIT OR Apache-2.0"
+authors = ["Liam Gray <gmail@liamg.me>"]
 
 [features]
 default = []
@@ -12,5 +19,5 @@ std = ["alloc", "portable-hash/std"]  # enable std library for testing std types
 [dependencies]
 portable-hash = { path = "../portable-hash", default-features = false }
 rustversion = "1.0"
-csv = "=1.2"  # fixed to 1.1 for older MSRV compatibility
+csv = "=1.2"  # fixed to 1.2 as old csv didn't specify a rust-version
 hex = "0.4"

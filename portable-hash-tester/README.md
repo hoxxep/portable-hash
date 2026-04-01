@@ -1,26 +1,52 @@
 # PortableHasher Testing
 
-A trait to automate **stability testing** of `PortableHasher` implementations. This trait will automatically generate a whole suite of fixtures against the provided `PortableHasher` implementation and ensure the hash output remains stable between platform, compiler, and crate versions.
+Automating **stability testing** of `PortableHasher` and `PortableHash` implementations.
 
-This is designed for both `PortableHasher` authors and for users who want to test the stability of their own `PortableHash` types.
+This crate provides a test suite and thousands of test fixtures for standard types. The fixtures are hashed by the chosen `PortableHasher` implementation, the has outputs are serialized to a `fixtures.csv` file, and subsequent runs will compare the outputs against the saved results.
 
-## Design
+Users are able to add their own fixtures of `PortableHash` types, so this can be used to test the stability and portability of any combination of `PortableHasher` and `PortableHash` types.
 
-A `BuildPortableHasher` object and a fixture file path get passed to the framework for testing. The user is responsible for running the tests over different seeds.
+## Example usage
+```rust
+use portable_hash::PortableHash;
+use portable_hash_tester::{test_default_fixtures, FixtureDB};
 
-The framework then:
-- Parses the existing fixture file for expected results.
-- Runs the hasher implementation against every test, comparing to the previously saved results.
-  - New tests will be added to the fixture file.
-  - If the results differ, the test will fail.
-- Generates new fixtures if none exist, or when some kind of flag is passed (saving the old as .old).
+/// Your custom type that implements `PortableHash`.
+#[derive(PortableHash, Debug)]
+struct MyType {
+    a: u32,
+}
+
+/// Test your custom `PortableHasher` implementation and `PortableHash` types are
+/// stable and portable between platforms, compiler, and crate versions.
+#[test]
+fn test_my_hasher() {
+    // Any BuildPortableHasher implementation you choose.
+    let hasher = BuildCustomHasher::default();
+
+    // Load/store the expected hash outputs from a file in your git repository.
+    let mut fixtures = FixtureDB::load(hasher, "path/to/fixtures.csv");
+
+    // Run thousands of test suite fixtures on standard types.
+    test_default_fixtures(&mut fixtures);
+
+    // Test your own PortableHash types.
+    fixtures.test_fixture("test_name", MyType { a: 42 });
+
+    // Test your own PortableHash types that don't implement debug.
+    fixtures.test_fixture_no_debug("test_name", MyType { a: 42 });
+
+    // Log the summary stats and error if any hash outputs changed.
+    fixtures.finish();
+}
+```
 
 ## TODO
 
 - [ ] Finish adding all tests.
 - [ ] Support or compare to `Hasher`?
 - [ ] Add slice tests for all types, due to `hash_slice` being overridable on a per-type basis.
-- [ ] Consider using Arbitrary for generating random types.
+- [ ] Consider building our own stable Arbitrary trait to make generating fixtures easier?
 - [ ] Decide on versioning. If new tests are breaking, should this crate perform a major version bump when new tests are released?
 - [ ] Improved documentation.
 - [ ] Rename `FixtureDB` to something more appropriate.

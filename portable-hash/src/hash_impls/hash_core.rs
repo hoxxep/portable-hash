@@ -91,12 +91,12 @@ impl PortableHash for Infallible {
 impl PortableHash for CStr {
     #[inline]
     fn portable_hash<H: PortableHasher>(&self, state: &mut H) {
-        // TODO(stabilisation): this differs from std hashers...
-        state.write_bytes(self.to_bytes_with_nul());
+        // Matches std's Hash for CStr: hash bytes without nul terminator.
+        state.write_bytes(self.to_bytes());
     }
 }
 
-impl<T: PortableHash> PortableHash for PhantomData<T> {
+impl<T> PortableHash for PhantomData<T> {
     fn portable_hash<H: PortableHasher>(&self, _state: &mut H) {
         // do nothing, as PhantomData does not hold any data.
     }
@@ -192,7 +192,6 @@ impl<B: PortableHash, C: PortableHash> PortableHash for ControlFlow<B, C> {
 impl<T: PortableHash> PortableHash for Range<T> {
     #[inline]
     fn portable_hash<H: PortableHasher>(&self, state: &mut H) {
-        state.write_u8(0);
         self.start.portable_hash(state);
         self.end.portable_hash(state);
     }
@@ -201,24 +200,18 @@ impl<T: PortableHash> PortableHash for Range<T> {
 impl<T: PortableHash> PortableHash for RangeFrom<T> {
     #[inline]
     fn portable_hash<H: PortableHasher>(&self, state: &mut H) {
-        state.write_u8(1);
         self.start.portable_hash(state);
     }
 }
 
 impl PortableHash for RangeFull {
     #[inline]
-    fn portable_hash<H: PortableHasher>(&self, state: &mut H) {
-        // TODO(stabilisation): decide whether these Range discriminants should be removed.
-        state.write_u8(2);
-        // RangeFull has no data to hash
-    }
+    fn portable_hash<H: PortableHasher>(&self, _state: &mut H) {}
 }
 
 impl<T: PortableHash> PortableHash for RangeInclusive<T> {
     #[inline]
     fn portable_hash<H: PortableHasher>(&self, state: &mut H) {
-        state.write_u8(3);
         self.start().portable_hash(state);
         self.end().portable_hash(state);
     }
@@ -227,7 +220,6 @@ impl<T: PortableHash> PortableHash for RangeInclusive<T> {
 impl<T: PortableHash> PortableHash for RangeTo<T> {
     #[inline]
     fn portable_hash<H: PortableHasher>(&self, state: &mut H) {
-        state.write_u8(4);
         self.end.portable_hash(state);
     }
 }
@@ -235,7 +227,6 @@ impl<T: PortableHash> PortableHash for RangeTo<T> {
 impl<T: PortableHash> PortableHash for RangeToInclusive<T> {
     #[inline]
     fn portable_hash<H: PortableHasher>(&self, state: &mut H) {
-        state.write_u8(5);
         self.end.portable_hash(state);
     }
 }
