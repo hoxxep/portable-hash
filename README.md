@@ -40,7 +40,7 @@ Fields in your types may be reordered, added, or changed, but the `PortableHash:
 
 Any breaking changes to the hash output of any type should require a major version bump of your crate, and documentation of the breaking change in your changelog.
 
-Be careful with `#[derive(PortableHash)]`. For **structs**, changing the order of fields will change the hash output. Fields can be _renamed_ safely, but cannot be re-ordered or change type.
+Be careful with `#[derive(PortableHash)]`. For **structs**, changing the order of fields will change the hash output. Fields can be _renamed_ safely but cannot be re-ordered or change type.
 
 For **enums**, the default is name-based discriminants: variant names are hashed at compile time, so **reordering variants is safe** but **renaming a variant is a breaking change**. Additional options:
 - `#[portable_hash(discriminant = "index")]` — position-based discriminants (reordering breaks, renaming safe). Explicit Rust discriminant values (`A = 42, B, C`) are respected with auto-incrementing.
@@ -48,7 +48,7 @@ For **enums**, the default is name-based discriminants: variant names are hashed
 - `#[portable_hash(rename = "OldName")]` — rename a variant without breaking hashes.
 - `#[portable_hash(discriminant = N)]` — manual discriminant value override.
 
-We recommend writing unit tests that hash each of your types against hardcoded hash outputs to check for stability.
+We recommend writing unit tests that hash each of your types against hardcoded hash outputs to check for stability. The `portable-hash-tester` crate provides a test harness to make this easier.
 
 </details>
 

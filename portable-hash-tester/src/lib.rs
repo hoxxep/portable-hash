@@ -36,7 +36,6 @@ pub fn test_portable_hasher(
     fixture: impl AsRef<Path>,
 ) {
     let mut fixtures = FixtureDB::load(hasher, fixture);
-    // fixtures.update_fixtures(true);
     test_default_fixtures(&mut fixtures);
     fixtures.finish();
 }
@@ -45,6 +44,10 @@ pub fn test_portable_hasher(
 pub fn test_default_fixtures(fixtures: &mut FixtureDB<impl BuildPortableHasher>) {
     tests::test_primitives::test_primitives(fixtures);
     tests::test_core::test_core(fixtures);
+    #[cfg(feature = "alloc")]
+    tests::test_alloc::test_alloc(fixtures);
+    #[cfg(feature = "std")]
+    tests::test_std::test_std(fixtures);
 }
 
 /// Our custom test and fixture harness.
@@ -102,25 +105,26 @@ impl<H: BuildPortableHasher> FixtureDB<H> {
 
         let fixtures = load_fixture_file(path.as_ref());
 
+        let updating = std::env::var("PORTABLE_HASH_UPDATE")
+            .map(|v| v == "true" || v == "1")
+            .unwrap_or(false);
+
         Self {
             hasher,
             path: path.as_ref().to_path_buf(),
             fixtures,
-            updating: false,
+            updating,
             finished: false,
         }
     }
 
     /// Update the persisted fixture file with new fixtures.
     ///
-    /// The default behaviour is to _not_ update the fixtures file.
+    /// The default behaviour is to _not_ update the fixtures file, unless the
+    /// `PORTABLE_HASH_UPDATE` environment variable is set to `true` or `1`.
     ///
-    /// The fixtures database will be updated automatically if either:
-    /// - A `--update-fixtures` flag is passed to the test runner.
-    /// - A `UPDATE_HASHER_FIXTURES` environment variable is set to `true`.
-    ///
-    /// This method overrides the above defaults, and hard-codes the behaviour to always be true or
-    /// false for a specific test run.
+    /// This method overrides the environment variable default, and hard-codes the behaviour to
+    /// always be true or false for a specific test run.
     pub fn update_fixtures(&mut self, updating: bool) {
         self.updating = updating;
     }
