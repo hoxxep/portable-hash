@@ -1,13 +1,6 @@
 //! [`PortableHash`] implementations for standard library types.
 
-use std::{
-    // explicitly omitted: ffi::{OsStr, OsString},
-    // explicitly omitted: fs::FileType,
-    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6},
-    // explicitly omitted: path::{Component, Path, PathBuf, Prefix, PrefixComponent},
-    // explicitly omitted: thread::ThreadId,
-    // explicitly omitted: time::{Instant, SystemTime} - not portable across machines or calls
-};
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
 use crate::{PortableHash, PortableHasher};
 
 impl PortableHash for IpAddr {

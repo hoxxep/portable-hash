@@ -266,6 +266,7 @@ mod tests {
 
     #[derive(PortableHash)]
     #[portable_hash(discriminant = "index", discriminant_width = "u8")]
+    #[allow(dead_code)]
     enum WidthU8Enum {
         A,
         B,

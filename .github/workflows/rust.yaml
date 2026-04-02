@@ -37,7 +37,7 @@ jobs:
     strategy:
       matrix:
         rust_version:
-          # - 1.57.0  # MSRV (can't get various libs to play nicely pre 1.63)
+          # - 1.57.0  # MSRV (sha2 transitive dep `libc` requires rustc 1.63+)
           - 1.63.0
           - 1.64.0  # CStr and CString stabilised
           - 1.73.0

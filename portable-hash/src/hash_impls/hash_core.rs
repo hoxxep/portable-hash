@@ -1,26 +1,18 @@
 use core::{
-    // explicitly omitted: alloc::Layout,
-    // explicitly omitted: any::TypeId,
     cmp::{Ordering, Reverse},
     convert::Infallible,
-    // gated to rustc 1.64: ffi::CStr,
-    // explicitly omitted: fmt::Error,
     marker::{PhantomData, PhantomPinned},
-    // explicitly omitted: mem::{Discriminant},
-    mem::{ManuallyDrop},
+    mem::ManuallyDrop,
     num::{
         NonZeroI128, NonZeroI16, NonZeroI32, NonZeroI64, NonZeroI8, NonZeroIsize, NonZeroU128,
-        NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize, /* gated to 1.74 Saturating, */
+        NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize,
         Wrapping,
     },
     ops::{
         Bound, ControlFlow, Deref, Range, RangeFrom, RangeFull, RangeInclusive, RangeTo,
         RangeToInclusive,
     },
-    // explicitly omitted: panic::Location,
     pin::Pin,
-    // TODO: ptr::NonNull, (can we safely hash this?)
-    // TODO: sync::atomic, (issues with Ordering stability, gating by available atomics, and what ordering to choose)
     task::Poll,
     time::Duration,
 };

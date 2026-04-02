@@ -107,7 +107,7 @@ fn parse_enum_attrs(attrs: &[syn::Attribute]) -> Result<EnumConfig, Error> {
                             return Err(Error::new(
                                 s.span(),
                                 format!(
-                                    "unknown discriminant mode `{other}`, expected `\"name\"` or `\"index\"`"
+                                    "unknown discriminant mode `{}`, expected `\"name\"` or `\"index\"`", other
                                 ),
                             ))
                         }
@@ -135,8 +135,8 @@ fn parse_enum_attrs(attrs: &[syn::Attribute]) -> Result<EnumConfig, Error> {
                                 return Err(Error::new(
                                     s.span(),
                                     format!(
-                                        "unknown discriminant_width `{other}`, expected \
-                                         `\"u8\"`, `\"u16\"`, `\"u32\"`, `\"u64\"`, `\"isize\"`, or `\"repr\"`"
+                                        "unknown discriminant_width `{}`, expected \
+                                         `\"u8\"`, `\"u16\"`, `\"u32\"`, `\"u64\"`, `\"isize\"`, or `\"repr\"`", other
                                     ),
                                 ))
                             }
@@ -307,7 +307,7 @@ fn disc_write_tokens(width: DiscriminantWidth, value: i128, span: Span) -> Resul
         DiscriminantWidth::U8 => {
             if value < 0 || value > u8::MAX as i128 {
                 return Err(Error::new(span, format!(
-                    "discriminant value {value} does not fit in u8 (0..=255)"
+                    "discriminant value {} does not fit in u8 (0..=255)", value
                 )));
             }
             let lit = Literal::u8_suffixed(value as u8);
@@ -316,7 +316,7 @@ fn disc_write_tokens(width: DiscriminantWidth, value: i128, span: Span) -> Resul
         DiscriminantWidth::U16 => {
             if value < 0 || value > u16::MAX as i128 {
                 return Err(Error::new(span, format!(
-                    "discriminant value {value} does not fit in u16 (0..=65535)"
+                    "discriminant value {} does not fit in u16 (0..=65535)", value
                 )));
             }
             let lit = Literal::u16_suffixed(value as u16);
@@ -325,7 +325,7 @@ fn disc_write_tokens(width: DiscriminantWidth, value: i128, span: Span) -> Resul
         DiscriminantWidth::U32 => {
             if value < 0 || value > u32::MAX as i128 {
                 return Err(Error::new(span, format!(
-                    "discriminant value {value} does not fit in u32"
+                    "discriminant value {} does not fit in u32", value
                 )));
             }
             let lit = Literal::u32_suffixed(value as u32);
@@ -334,7 +334,7 @@ fn disc_write_tokens(width: DiscriminantWidth, value: i128, span: Span) -> Resul
         DiscriminantWidth::U64 => {
             if value < 0 || value > u64::MAX as i128 {
                 return Err(Error::new(span, format!(
-                    "discriminant value {value} does not fit in u64"
+                    "discriminant value {} does not fit in u64", value
                 )));
             }
             let lit = Literal::u64_suffixed(value as u64);
@@ -344,7 +344,7 @@ fn disc_write_tokens(width: DiscriminantWidth, value: i128, span: Span) -> Resul
             // write_isize; our PortableHasher converts to i64 portably.
             if value < i64::MIN as i128 || value > i64::MAX as i128 {
                 return Err(Error::new(span, format!(
-                    "discriminant value {value} does not fit in i64/isize"
+                    "discriminant value {} does not fit in i64/isize", value
                 )));
             }
             let v = value as i64;

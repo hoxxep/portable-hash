@@ -3,7 +3,6 @@ use alloc::{
     borrow::{Cow, ToOwned},
     boxed::Box,
     collections::{BTreeMap, BTreeSet, LinkedList, VecDeque},
-    // gated to rustc 1.64: ffi::CString,
     rc::Rc,
     string::String,
     sync::Arc,
