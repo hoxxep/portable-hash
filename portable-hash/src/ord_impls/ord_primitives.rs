@@ -84,12 +84,12 @@ impl<T: PortableOrd, const LEN: usize> PortableOrd for [T; LEN] {
     const I_KNOW_WHAT_I_AM_DOING: () = ();
 }
 
-impl<T: PortableOrd> PortableOrd for &T {
+impl<T: ?Sized + PortableOrd> PortableOrd for &T {
     const CAN_USE_UNSTABLE_SORT: bool = T::CAN_USE_UNSTABLE_SORT;
     const I_KNOW_WHAT_I_AM_DOING: () = ();
 }
 
-impl<T: PortableOrd> PortableOrd for &mut T {
+impl<T: ?Sized + PortableOrd> PortableOrd for &mut T {
     const CAN_USE_UNSTABLE_SORT: bool = T::CAN_USE_UNSTABLE_SORT;
     const I_KNOW_WHAT_I_AM_DOING: () = ();
 }

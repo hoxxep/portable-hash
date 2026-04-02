@@ -34,6 +34,17 @@ pub use portable_hash_macros::PortableHash;
 /// }
 /// ```
 ///
+/// # Derive Behavior
+///
+/// **Structs** are hashed in field declaration order. Renaming fields is safe, but reordering
+/// or removing fields changes the hash output.
+///
+/// **Enums** use name-based discriminants by default: each variant's name is hashed at compile
+/// time into a `u64` discriminant. This means reordering variants is safe, but renaming a
+/// variant changes the hash output. Use `#[portable_hash(discriminant = "index")]` for
+/// position-based discriminants or `#[portable_hash(discriminant_width = "u8")]` to control the
+/// write method. See the [`derive macro`](derive@PortableHash) docs for full details.
+///
 /// # Example Manual Implementation
 /// ```
 /// use portable_hash::{PortableHash, PortableHasher};
@@ -293,19 +304,27 @@ pub trait PortableHasher {
     }
 }
 
-/// An alternative to [`PortableHasher::finish`] with a hasher-specific output type.
+/// An extension to [`PortableHasher`] for hashers that can produce output type `T`.
 ///
-/// TODO(stabilisation): merge this trait into [`PortableHasher`], it makes little sense to be separate.
+/// While [`PortableHasher::finish`] always returns a `u64` (needed for HashMap compatibility),
+/// this trait allows hashers to provide richer output types such as `[u8; 32]` for SHA-256,
+/// `u128` for SipHash-128, or variable-length outputs for XOF hashers.
 ///
-/// TODO(stabilisation): could we enable hashers to have multiple output types, or extensible output types?
-pub trait ExtendedPortableHasher: PortableHasher {
-    /// The type of output produced by the hasher.
-    type Output;
-
-    /// Finalizes the hash computation and returns the hasher-specific output value.
-    ///
-    /// TODO(stabilisation): review the naming and addition of this method. Should this be finish(), and move the other to finish_u64()?
-    fn digest(&self) -> Self::Output;
+/// A single hasher can implement this trait for multiple output types. The output type is
+/// inferred from context, similar to [`str::parse`] or [`Iterator::collect`].
+///
+/// # Example
+/// ```ignore
+/// let full: [u8; 32] = hasher.finalize();
+/// let short: u128 = hasher.finalize();
+/// ```
+///
+/// This trait is intentionally separate from [`PortableHasher`] because the `u64` output serves
+/// a different purpose (HashMap bucketing) than the hasher's native output, and associated type
+/// defaults are not stable in Rust.
+pub trait PortableHasherOutput<T>: PortableHasher {
+    /// Finalizes the hash computation and returns the output as type `T`.
+    fn finalize(&self) -> T;
 }
 
 /// A trait for building multiple [`PortableHasher`]s that use the same seed.
@@ -330,14 +349,19 @@ pub trait BuildPortableHasher {
     }
 
     /// Hash an object, returning a hasher-specific output value.
-    fn digest_one<T>(&self, x: T) -> <Self::PortableHasher as ExtendedPortableHasher>::Output
+    ///
+    /// The output type is inferred from context:
+    /// ```ignore
+    /// let hash: [u8; 32] = builder.finalize_one(my_data);
+    /// ```
+    fn finalize_one<O, T>(&self, x: T) -> O
     where
         T: PortableHash,
-        Self::PortableHasher: ExtendedPortableHasher,
+        Self::PortableHasher: PortableHasherOutput<O>,
     {
         let mut hasher = self.build_hasher();
         x.portable_hash(&mut hasher);
-        hasher.digest()
+        hasher.finalize()
     }
 }
 

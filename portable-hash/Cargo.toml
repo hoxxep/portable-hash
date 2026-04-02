@@ -17,5 +17,5 @@ alloc = [] # enable PortableHash implementations of alloc types, String and Vec
 std = ["alloc"]  # enable PortableHash implementations of std library types
 
 [dependencies]
-portable-hash-macros = { version = "0.1.1" }
+portable-hash-macros = { version = "0.1.1", path = "../portable-hash-macros" }
 rustversion = "1.0.21"

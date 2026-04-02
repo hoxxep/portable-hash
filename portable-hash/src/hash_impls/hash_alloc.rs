@@ -3,7 +3,6 @@ use alloc::{
     borrow::{Cow, ToOwned},
     boxed::Box,
     collections::{BTreeMap, BTreeSet, LinkedList, VecDeque},
-    // gated to rustc 1.64: ffi::CString,
     rc::Rc,
     string::String,
     sync::Arc,
@@ -15,27 +14,27 @@ use alloc::ffi::CString;
 
 use crate::{PortableHash, PortableHasher, PortableOrd};
 
-impl<T: ToOwned + PortableHash> PortableHash for Cow<'_, T> {
+impl<T: ?Sized + ToOwned + PortableHash> PortableHash for Cow<'_, T> {
     fn portable_hash<H: PortableHasher>(&self, state: &mut H) {
         (**self).portable_hash(state);
     }
 }
 
-impl<T: PortableHash> PortableHash for Box<T> {
+impl<T: ?Sized + PortableHash> PortableHash for Box<T> {
     #[inline]
     fn portable_hash<H: PortableHasher>(&self, state: &mut H) {
         (**self).portable_hash(state);
     }
 }
 
-impl<T: PortableHash> PortableHash for Rc<T> {
+impl<T: ?Sized + PortableHash> PortableHash for Rc<T> {
     #[inline]
     fn portable_hash<H: PortableHasher>(&self, state: &mut H) {
         (**self).portable_hash(state);
     }
 }
 
-impl<T: PortableHash> PortableHash for Arc<T> {
+impl<T: ?Sized + PortableHash> PortableHash for Arc<T> {
     #[inline]
     fn portable_hash<H: PortableHasher>(&self, state: &mut H) {
         (**self).portable_hash(state);

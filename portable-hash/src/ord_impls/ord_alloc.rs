@@ -3,7 +3,6 @@ use alloc::{
     borrow::{Cow, ToOwned},
     boxed::Box,
     collections::{BTreeMap, BTreeSet, LinkedList, VecDeque},
-    // gated to rustc 1.64: ffi::CString,
     rc::Rc,
     string::String,
     sync::Arc,
@@ -15,22 +14,22 @@ use alloc::ffi::CString;
 
 use crate::PortableOrd;
 
-impl<T: PortableOrd + ToOwned> PortableOrd for Cow<'_, T> {
+impl<T: ?Sized + PortableOrd + ToOwned> PortableOrd for Cow<'_, T> {
     const CAN_USE_UNSTABLE_SORT: bool = T::CAN_USE_UNSTABLE_SORT;
     const I_KNOW_WHAT_I_AM_DOING: () = ();
 }
 
-impl<T: PortableOrd> PortableOrd for Box<T> {
+impl<T: ?Sized + PortableOrd> PortableOrd for Box<T> {
     const CAN_USE_UNSTABLE_SORT: bool = T::CAN_USE_UNSTABLE_SORT;
     const I_KNOW_WHAT_I_AM_DOING: () = ();
 }
 
-impl<T: PortableOrd> PortableOrd for Rc<T> {
+impl<T: ?Sized + PortableOrd> PortableOrd for Rc<T> {
     const CAN_USE_UNSTABLE_SORT: bool = T::CAN_USE_UNSTABLE_SORT;
     const I_KNOW_WHAT_I_AM_DOING: () = ();
 }
 
-impl<T: PortableOrd> PortableOrd for Arc<T> {
+impl<T: ?Sized + PortableOrd> PortableOrd for Arc<T> {
     const CAN_USE_UNSTABLE_SORT: bool = T::CAN_USE_UNSTABLE_SORT;
     const I_KNOW_WHAT_I_AM_DOING: () = ();
 }

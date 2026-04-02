@@ -36,7 +36,6 @@ pub fn test_portable_hasher(
     fixture: impl AsRef<Path>,
 ) {
     let mut fixtures = FixtureDB::load(hasher, fixture);
-    // fixtures.update_fixtures(true);
     test_default_fixtures(&mut fixtures);
     fixtures.finish();
 }
@@ -45,6 +44,10 @@ pub fn test_portable_hasher(
 pub fn test_default_fixtures(fixtures: &mut FixtureDB<impl BuildPortableHasher>) {
     tests::test_primitives::test_primitives(fixtures);
     tests::test_core::test_core(fixtures);
+    #[cfg(feature = "alloc")]
+    tests::test_alloc::test_alloc(fixtures);
+    #[cfg(feature = "std")]
+    tests::test_std::test_std(fixtures);
 }
 
 /// Our custom test and fixture harness.
@@ -102,25 +105,26 @@ impl<H: BuildPortableHasher> FixtureDB<H> {
 
         let fixtures = load_fixture_file(path.as_ref());
 
+        let updating = std::env::var("PORTABLE_HASH_UPDATE")
+            .map(|v| v == "true" || v == "1")
+            .unwrap_or(false);
+
         Self {
             hasher,
             path: path.as_ref().to_path_buf(),
             fixtures,
-            updating: false,
+            updating,
             finished: false,
         }
     }
 
     /// Update the persisted fixture file with new fixtures.
     ///
-    /// The default behaviour is to _not_ update the fixtures file.
+    /// The default behaviour is to _not_ update the fixtures file, unless the
+    /// `PORTABLE_HASH_UPDATE` environment variable is set to `true` or `1`.
     ///
-    /// The fixtures database will be updated automatically if either:
-    /// - A `--update-fixtures` flag is passed to the test runner.
-    /// - A `UPDATE_HASHER_FIXTURES` environment variable is set to `true`.
-    ///
-    /// This method overrides the above defaults, and hard-codes the behaviour to always be true or
-    /// false for a specific test run.
+    /// This method overrides the environment variable default, and hard-codes the behaviour to
+    /// always be true or false for a specific test run.
     pub fn update_fixtures(&mut self, updating: bool) {
         self.updating = updating;
     }
@@ -128,6 +132,11 @@ impl<H: BuildPortableHasher> FixtureDB<H> {
     /// Log the hash output for a fixture.
     fn log_hash_result(&mut self, name: &str, actual_hash: u64) -> &Fixture {
         assert!(!self.finished, "You are testing fixtures after `FixtureDB::finish()` has been called.");
+        assert!(!name.is_empty(), "Fixture test name must not be empty.");
+        assert!(
+            !name.contains(|c: char| c == ',' || c == '\n' || c == '\r'),
+            "Fixture test name '{}' contains invalid characters (comma or newline).", name,
+        );
 
         let fixture = self.fixtures
             .entry(name.to_string())
@@ -268,6 +277,15 @@ impl<H: BuildPortableHasher> Drop for FixtureDB<H> {
     }
 }
 
+fn hex_decode_u64(s: &str) -> Option<u64> {
+    if s.len() != 16 { return None; }
+    u64::from_str_radix(s, 16).ok()
+}
+
+fn hex_encode_upper_u64(value: u64) -> String {
+    format!("{:016X}", value)
+}
+
 fn load_fixture_file(path: impl AsRef<Path>) -> HashMap<String, Fixture> {
     let path = path.as_ref();
     if !path.exists() {
@@ -275,31 +293,22 @@ fn load_fixture_file(path: impl AsRef<Path>) -> HashMap<String, Fixture> {
         return HashMap::new();
     }
 
-    // read the CSV file and parse the fixtures
+    let content = std::fs::read_to_string(path).expect("Failed to read fixture file");
     let mut fixtures = HashMap::new();
-    let file = std::fs::File::open(path).expect("Failed to open fixture file");
-    let mut reader = csv::ReaderBuilder::new()
-        .has_headers(true)
-        .from_reader(file);
 
-    for result in reader.records() {
-        let record = result.expect("Failed to read record from fixture file");
-
-        if record.len() < 2 {
-            continue; // skip invalid records
+    for (i, line) in content.lines().enumerate() {
+        if i == 0 || line.is_empty() {
+            continue; // skip header and blank lines
         }
 
-        let name = record.get(0).expect("Expected fixture name").to_string();
-        let expected_hash = record.get(1).and_then(|s| {
-            // we print u64 hashes as big-endian hex strings
-            let mut bytes = [0u8; 8];
-            hex::decode_to_slice(s, &mut bytes).ok()?;
-            Some(u64::from_be_bytes(bytes))
-        });
+        let (name, hash_str) = match line.split_once(',') {
+            Some(pair) => pair,
+            None => continue,
+        };
 
         let fixture = Fixture {
-            name,
-            expected_hash,
+            name: name.to_string(),
+            expected_hash: hex_decode_u64(hash_str),
             actual_hash: None,
         };
 
@@ -310,24 +319,17 @@ fn load_fixture_file(path: impl AsRef<Path>) -> HashMap<String, Fixture> {
 }
 
 fn save_fixture_file(path: impl AsRef<Path>, fixtures: &HashMap<String, Fixture>) {
+    use std::io::Write;
+
     let path = path.as_ref();
 
-    // rename the old file to .old as a backup
-    if path.exists() {
-        let backup_path = path.with_extension("csv.old");
-        if backup_path.exists() {
-            std::fs::remove_file(&backup_path).expect("Failed to remove old fixture file");
-        }
-        std::fs::rename(path, backup_path).expect("Failed to rename fixture file to .old");
-    }
+    // write to a .tmp file first, then atomically rename to the target path
+    let tmp_path = path.with_extension("csv.tmp");
 
-    let mut writer = csv::WriterBuilder::new()
-        .has_headers(true)
-        .from_path(path)
-        .expect("Failed to create CSV writer for fixture file");
+    let mut file = std::fs::File::create(&tmp_path)
+        .expect("Failed to create tmp fixture file");
 
-    let headers = ["name", "expected_hash_u64"];
-    writer.write_record(&headers).expect("Failed to write headers to fixture file");
+    writeln!(file, "name,expected_hash_u64").expect("Failed to write header");
 
     let mut fixtures_vec = fixtures.values()
         .filter(|fixture| fixture.actual_hash.is_some())  // remove skipped tests
@@ -336,15 +338,16 @@ fn save_fixture_file(path: impl AsRef<Path>, fixtures: &HashMap<String, Fixture>
     fixtures_vec.sort();
 
     for fixture in fixtures_vec {
-        // the actual hash becomes the expected hash, because we're updating the fixtures
-        // encode the expected hash as a big-endian hex string
         let new_expected_hash = fixture.actual_hash
-            .map(|h| hex::encode_upper(h.to_be_bytes()))
+            .map(hex_encode_upper_u64)
             .expect("Actual hash should be set for fixture before writing");
 
-        writer.write_record(&[&fixture.name, &new_expected_hash])
-            .expect("Failed to write record to fixture file");
+        writeln!(file, "{},{}", fixture.name, new_expected_hash)
+            .expect("Failed to write fixture record");
     }
 
-    writer.flush().expect("Failed to flush CSV writer");
+    file.flush().expect("Failed to flush fixture file");
+    drop(file);
+
+    std::fs::rename(&tmp_path, path).expect("Failed to rename .tmp fixture file to target path");
 }

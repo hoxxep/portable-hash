@@ -40,12 +40,20 @@ Fields in your types may be reordered, added, or changed, but the `PortableHash:
 
 Any breaking changes to the hash output of any type should require a major version bump of your crate, and documentation of the breaking change in your changelog.
 
-Be careful with `#[derive(PortableHash)]`. Changing the order of fields in structs or enums will change the hash output. We recommend writing unit tests that hash each of your types against hardcoded hash outputs to check for stability. Fields can be _renamed_ safely, but cannot be re-ordered or change type. Please implement `PortableHash` manually to maintain stability if you need to change the order of fields.
+Be careful with `#[derive(PortableHash)]`. For **structs**, changing the order of fields will change the hash output. Fields can be _renamed_ safely but cannot be re-ordered or change type.
+
+For **enums**, the default is name-based discriminants: variant names are hashed at compile time, so **reordering variants is safe** but **renaming a variant is a breaking change**. Additional options:
+- `#[portable_hash(discriminant = "index")]` — position-based discriminants (reordering breaks, renaming safe). Explicit Rust discriminant values (`A = 42, B, C`) are respected with auto-incrementing.
+- `#[portable_hash(discriminant_width = "u8")]` — control the write method (`u8`, `u16`, `u32`, `u64`, `isize`, `repr`).
+- `#[portable_hash(rename = "OldName")]` — rename a variant without breaking hashes.
+- `#[portable_hash(discriminant = N)]` — manual discriminant value override.
+
+We recommend writing unit tests that hash each of your types against hardcoded hash outputs to check for stability. The `portable-hash-tester` crate provides a test harness to make this easier.
 
 </details>
 
 ```rust
-use portable_hash::{PortableHash, PortableHasher, PortableHasherDigest};
+use portable_hash::{PortableHash, PortableHasher, PortableHasherOutput};
 use sha_hasher::Sha256Hasher;
 
 #[derive(PortableHash, Default)]
@@ -59,10 +67,13 @@ let object = MyType { a: 42, b: "Hello".to_string() };
 let mut hasher = Sha256Hasher::default();
 object.portable_hash(&mut hasher);
 assert_eq!(hasher.finish(), 5333351996764360352, "u64 output");
-assert_eq!(hasher.digest(), [
+
+// Hasher-specific output types via PortableHasherOutput<T>
+let digest: [u8; 32] = hasher.finalize();
+assert_eq!(digest, [
     160, 142, 66, 61, 98, 223, 3, 74, 108, 15, 1, 253, 229, 169, 86, 215,
     117, 111, 201, 32, 16, 24, 16, 174, 206, 67, 25, 224, 226, 174, 4, 168
-], "hasher-specific output type");
+]);
 ```
 
 Hashers that implement `PortableHasher`:
@@ -159,11 +170,8 @@ Everything is up for debate in the GitHub issues, this list is not exhaustive, a
 - [x] ~Decide on `write_str` default implementation [change to use a length prefix](https://github.com/rust-lang/rust/pull/134134).~ Match std for performance in bytewise hashers. Non-bytewise hashers can implement their own `write_str` method. Will change the default if the std implementation changes.
 - [x] ~Decide on renaming `BuildPortableHasher` to `PortableBuildHasher`?~ We're building a `PortableHasher`. Keep as-is.
 - [x] ~Should the `PortableHasher` trait methods be renamed?~ Is there a risk of accidentally calling the wrong implementation of `write` if `Hasher` and `PortableHasher` are implemented at the same time? Implementing `PortableHasher::portable_hash` should be over the generic type without conflicts, and the `write_*` methods should ask to specify which trait to call if it's ambiguous.
-- [ ] Decide on hasher-specific output types.
-  - [ ] Should the default `finish` instead offer a custom Output type, and include an optional `finish_u64`?
-  - [ ] Use a better name for custom outputs than "digest".
-  - [ ] Should cryptographic hashes implement `PortableHasher`? Is the `sha-hasher` a reasonable thing to publish?
-- [ ] Review the `derive(PortableHash)` macro for stable enum hashing. Re-ordering currently changes the hash output, while renaming is safe.
+- [x] ~`PortableHasherOutput<T>` generic trait allows multiple output types per hasher, with `finalize() -> T` inferred from context.
+- [x] ~Review the `derive(PortableHash)` macro for stable enum hashing.~ Name-based discriminants are now the default (reordering safe, renaming breaks). Index-based available via `#[portable_hash(discriminant = "index")]`. Manual overrides and `rename` attribute also supported.
 - [ ] Review many of the primitive and enum `PortableHash` implementations for stability and DoS resistance.
   - [ ] Double-check the manual `write_u8` enum discriminant keys
   - [ ] Double-check the various `Range*` impls.

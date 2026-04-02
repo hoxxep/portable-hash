@@ -2,7 +2,7 @@
 
 Automating **stability testing** of `PortableHasher` and `PortableHash` implementations.
 
-This crate provides a test suite and thousands of test fixtures for standard types. The fixtures are hashed by the chosen `PortableHasher` implementation, the has outputs are serialized to a `fixtures.csv` file, and subsequent runs will compare the outputs against the saved results.
+This crate provides a test suite and thousands of test fixtures for standard types. The fixtures are hashed by the chosen `PortableHasher` implementation, the hash outputs are serialized to a `fixtures.csv` file, and subsequent runs will compare the outputs against the saved results.
 
 Users are able to add their own fixtures of `PortableHash` types, so this can be used to test the stability and portability of any combination of `PortableHasher` and `PortableHash` types.
 
@@ -40,6 +40,20 @@ fn test_my_hasher() {
     fixtures.finish();
 }
 ```
+
+## Updating Fixtures
+
+When you first set up fixtures, or when hash outputs intentionally change (e.g. after changing your `PortableHasher` implementation), you need to regenerate the fixture file.
+
+Set the `PORTABLE_HASH_UPDATE` environment variable to `true` or `1`:
+
+```bash
+PORTABLE_HASH_UPDATE=true cargo test -p your-crate
+```
+
+This writes the current hash outputs to the fixture CSV file. Subsequent test runs (without the env var) will compare against these saved values.
+
+You can also call `fixtures.update_fixtures(true)` programmatically to force an update for a specific test run.
 
 ## TODO
 
