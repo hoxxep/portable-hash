@@ -19,7 +19,7 @@ std = ["portable-hash-tester/std"]  # enable std library for testing std types
 
 [dependencies]
 portable-hash = { path = "../portable-hash", default-features = false }
-sha2 = "0.11"
+sha2 = "0.10"  # do not upgrade, 0.11 doesn't support MSRV
 
 [dev-dependencies]
 portable-hash-tester = { path = "../portable-hash-tester", default-features = false }
