@@ -65,12 +65,8 @@ impl<T: PortableHash, E: PortableHash> PortableHash for Result<T, E> {
 impl PortableHash for Ordering {
     #[inline]
     fn portable_hash<H: PortableHasher>(&self, state: &mut H) {
-        // TODO(stabilisation): should this match the enum values?
-        match self {
-            Ordering::Less => state.write_u8(1),
-            Ordering::Equal => state.write_u8(2),
-            Ordering::Greater => state.write_u8(3),
-        }
+        // Match std's discriminant values: Less = -1, Equal = 0, Greater = 1.
+        state.write_i8(*self as i8);
     }
 }
 

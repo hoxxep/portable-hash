@@ -312,18 +312,12 @@ fn load_fixture_file(path: impl AsRef<Path>) -> HashMap<String, Fixture> {
 fn save_fixture_file(path: impl AsRef<Path>, fixtures: &HashMap<String, Fixture>) {
     let path = path.as_ref();
 
-    // rename the old file to .old as a backup
-    if path.exists() {
-        let backup_path = path.with_extension("csv.old");
-        if backup_path.exists() {
-            std::fs::remove_file(&backup_path).expect("Failed to remove old fixture file");
-        }
-        std::fs::rename(path, backup_path).expect("Failed to rename fixture file to .old");
-    }
+    // write to a .tmp file first, then atomically rename to the target path
+    let tmp_path = path.with_extension("csv.tmp");
 
     let mut writer = csv::WriterBuilder::new()
         .has_headers(true)
-        .from_path(path)
+        .from_path(&tmp_path)
         .expect("Failed to create CSV writer for fixture file");
 
     let headers = ["name", "expected_hash_u64"];
@@ -347,4 +341,7 @@ fn save_fixture_file(path: impl AsRef<Path>, fixtures: &HashMap<String, Fixture>
     }
 
     writer.flush().expect("Failed to flush CSV writer");
+    drop(writer);
+
+    std::fs::rename(&tmp_path, path).expect("Failed to rename .tmp fixture file to target path");
 }

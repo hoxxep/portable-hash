@@ -342,9 +342,9 @@ option_none_str,987AB3FF9C0B346E
 option_none_u32,987AB3FF9C0B346E
 option_some_str,F4D9FB2491576AB1
 option_some_u32,17F8323312C3652E
-ordering_equal,8DE4FF00C9B4C1DB
-ordering_greater,4DAF78B908ED4F08
-ordering_less,C55445342F12F54B
+ordering_equal,987AB3FF9C0B346E
+ordering_greater,C55445342F12F54B
+ordering_less,D04019AAE60A10A8
 phantom_data,141CFC9842C4B0E3
 phantom_pinned,141CFC9842C4B0E3
 pin_str,6A914173517EE957
